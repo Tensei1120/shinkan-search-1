@@ -23,7 +23,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const GRADES = ["1年生", "2年生", "3年生", "4年生", "大学院±1年", "大学院±2年", "その他"];
+const GRADES = ["1年生", "2年生", "3年生", "4年生", "大学院1年", "大学院2年", "その他"];
 const GENDERS = ["男性", "女性", "その他", "回答しない"];
 
 interface Props {
