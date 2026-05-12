@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     .from("circles")
     .insert({
       name: circleName,
-      university: university ?? null,
+      university: university,
       category: "other",
       contact_email: email,
     })
