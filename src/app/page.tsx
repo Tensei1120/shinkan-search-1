@@ -1,40 +1,48 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { CircleSearch } from "@/components/circle-search";
+import { SiteHeader } from "@/components/site-header";
+import { EventListings } from "@/components/event-listings";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const { data: circles } = await supabase
-    .from("circles")
-    .select("*, events(count)")
-    .order("name");
+  const { data: events } = await supabase
+    .from("events")
+    .select("id, title, description, date, location, capacity, reserved_count, status, circles!inner(id, name, category, university)")
+    .neq("status", "cancelled")
+    .gte("date", new Date().toISOString())
+    .order("date", { ascending: true })
+    .limit(200);
 
-  const circleList = (circles ?? []).map((c) => ({
-    id: c.id,
-    name: c.name,
-    description: c.description,
-    events: (c.events as unknown as { count: number }[]) ?? [],
+  const rows = (events ?? []).map((ev) => ({
+    id: ev.id,
+    title: ev.title,
+    description: ev.description,
+    date: ev.date,
+    location: ev.location,
+    capacity: ev.capacity,
+    reserved_count: ev.reserved_count,
+    status: ev.status as "open" | "closed" | "cancelled",
+    circles: ev.circles as { id: string; name: string; category: string; university: string | null },
   }));
 
+  const universities = [...new Set(
+    rows.map((r) => r.circles.university).filter((u): u is string => !!u)
+  )].sort();
+
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b px-6 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">新歓イベント予約</h1>
-        <Link href="/admin" className="text-sm text-muted-foreground hover:underline">
-          サークル管理者の方はこちら
-        </Link>
-      </header>
-
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <h2 className="text-lg font-semibold mb-6 text-muted-foreground">
-          参加したいサークルを選んでください
-        </h2>
-
-        <CircleSearch circles={circleList} />
-      </div>
-    </main>
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">新歓イベントを探す</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            気になるイベントを見つけて、今すぐ予約しよう
+          </p>
+        </div>
+        <EventListings events={rows} universities={universities} />
+      </main>
+    </div>
   );
 }
