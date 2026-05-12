@@ -17,9 +17,10 @@ import ReservationActions from "./reservation-actions";
 export const revalidate = 0;
 
 const STATUS_LABEL = {
-  pending: { label: "未処理", variant: "secondary" as const },
-  approved: { label: "承認", variant: "default" as const },
-  rejected: { label: "却下", variant: "destructive" as const },
+  pending:   { label: "未処理",       variant: "secondary" as const },
+  approved:  { label: "承認",         variant: "default" as const },
+  rejected:  { label: "却下",         variant: "destructive" as const },
+  cancelled: { label: "キャンセル済", variant: "outline" as const },
 };
 
 export default async function ReservationsPage({
