@@ -16,6 +16,8 @@ export interface Database {
           description: string | null;
           logo_url: string | null;
           contact_email: string;
+          category: string;
+          university: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -25,6 +27,8 @@ export interface Database {
           description?: string | null;
           logo_url?: string | null;
           contact_email: string;
+          category?: string;
+          university?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -34,6 +38,8 @@ export interface Database {
           description?: string | null;
           logo_url?: string | null;
           contact_email?: string;
+          category?: string;
+          university?: string | null;
           updated_at?: string;
         };
         Relationships: [];
