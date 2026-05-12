@@ -4,8 +4,12 @@ import { createServerClient } from "@supabase/ssr";
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Only protect /admin/* except /admin/login and /auth/*
-  if (!pathname.startsWith("/admin") || pathname === "/admin/login") {
+  // Only protect /admin/* except /admin/login, /admin/register and /auth/*
+  if (
+    !pathname.startsWith("/admin") ||
+    pathname === "/admin/login" ||
+    pathname === "/admin/register"
+  ) {
     return NextResponse.next();
   }
 
