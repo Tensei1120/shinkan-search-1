@@ -17,9 +17,10 @@ import ReservationActions from "./reservation-actions";
 export const revalidate = 0;
 
 const STATUS_LABEL = {
-  pending: { label: "未処理", variant: "secondary" as const },
-  approved: { label: "承認", variant: "default" as const },
-  rejected: { label: "却下", variant: "destructive" as const },
+  pending:   { label: "未処理",         variant: "secondary" as const },
+  approved:  { label: "承認",           variant: "default" as const },
+  rejected:  { label: "却下",           variant: "destructive" as const },
+  cancelled: { label: "キャンセル済み", variant: "secondary" as const },
 };
 
 export default async function ReservationsPage({
@@ -54,7 +55,7 @@ export default async function ReservationsPage({
     <div className="max-w-6xl mx-auto px-6 py-10">
       <div className="mb-6">
         <Link href="/admin" className="text-sm text-muted-foreground hover:underline">
-          ← ダッシュボードに戻る
+          ← ダッシュボードに戺る
         </Link>
         <h1 className="text-2xl font-bold mt-1">{circleName} ― 予約一覧</h1>
       </div>
