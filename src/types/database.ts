@@ -130,7 +130,7 @@ export interface Database {
           grade: string;
           department: string;
           note: string | null;
-          status: "pending" | "approved" | "rejected";
+          status: "pending" | "approved" | "rejected" | "cancelled";
           created_at: string;
           updated_at: string;
         };
@@ -142,7 +142,7 @@ export interface Database {
           grade: string;
           department: string;
           note?: string | null;
-          status?: "pending" | "approved" | "rejected";
+          status?: "pending" | "approved" | "rejected" | "cancelled";
           created_at?: string;
           updated_at?: string;
         };
@@ -154,7 +154,7 @@ export interface Database {
           grade?: string;
           department?: string;
           note?: string | null;
-          status?: "pending" | "approved" | "rejected";
+          status?: "pending" | "approved" | "rejected" | "cancelled";
           updated_at?: string;
         };
         Relationships: [
@@ -169,7 +169,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      decrement_reserved_count: {
+        Args: { p_event_id: string };
+        Returns: void;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
