@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { SiteHeader } from "@/components/site-header";
+import { CATEGORIES, CATEGORY_COLORS } from "@/lib/categories";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -29,19 +31,25 @@ export default async function CirclePage({
 
   if (!circle) notFound();
 
-  return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b px-6 py-4">
-        <Link href="/" className="text-sm text-muted-foreground hover:underline">
-          ← サークル一覧に戻る
-        </Link>
-      </header>
+  const catColor = CATEGORY_COLORS[circle.category] ?? CATEGORY_COLORS.other;
+  const catLabel = CATEGORIES[circle.category as keyof typeof CATEGORIES] ?? circle.category;
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold mb-2">{circle.name}</h1>
-        {circle.description && (
-          <p className="text-muted-foreground mb-8">{circle.description}</p>
-        )}
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main className="max-w-3xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
+            {circle.university && (
+              <span className="text-sm text-muted-foreground">{circle.university}</span>
+            )}
+          </div>
+          <h1 className="text-3xl font-bold">{circle.name}</h1>
+          {circle.description && (
+            <p className="text-muted-foreground mt-2">{circle.description}</p>
+          )}
+        </div>
 
         <h2 className="text-xl font-semibold mb-4">開催予定のイベント</h2>
 
@@ -98,7 +106,7 @@ export default async function CirclePage({
             })}
           </div>
         )}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

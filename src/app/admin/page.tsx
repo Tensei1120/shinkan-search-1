@@ -34,12 +34,15 @@ export default async function AdminDashboard() {
                 <CardHeader>
                   <CardTitle className="text-base">{c.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="flex gap-2">
+                <CardContent className="flex gap-2 flex-wrap">
                   <Link href={`/admin/circles/${c.id}/events`} className={buttonVariants({ size: "sm" })}>
                     イベント管理
                   </Link>
                   <Link href={`/admin/circles/${c.id}/reservations`} className={buttonVariants({ size: "sm", variant: "outline" })}>
                     予約一覧
+                  </Link>
+                  <Link href={`/admin/circles/${c.id}/profile`} className={buttonVariants({ size: "sm", variant: "outline" })}>
+                    プロフィール編集
                   </Link>
                 </CardContent>
               </Card>
