@@ -16,6 +16,7 @@ export default async function MyPage() {
   const profile = JSON.parse(raw) as {
     email: string;
     name: string;
+    furigana?: string;
     university?: string;
     department?: string;
     grade?: string;
@@ -25,7 +26,7 @@ export default async function MyPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("reservations")
-    .select("id, status, created_at, events(id, title, date, location, circles(id, name, category))")
+    .select("id, status, created_at, events(id, title, date, location, circles(id, name, category, contact_email))")
     .eq("email", profile.email)
     .order("created_at", { ascending: false });
 

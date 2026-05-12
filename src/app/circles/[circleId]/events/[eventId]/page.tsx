@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -25,15 +26,23 @@ export default async function EventPage({
 
   if (!event) notFound();
 
+  const cookieStore = await cookies();
+  const raw = cookieStore.get("student_profile")?.value;
+  const profile = raw
+    ? (JSON.parse(raw) as { name: string; email: string; furigana?: string; grade?: string; department?: string })
+    : null;
+
   const isFull = event.reserved_count >= event.capacity;
   const isClosed = event.status === "closed" || event.status === "cancelled";
   const unavailable = isFull || isClosed;
+
+  const circle = event.circles as { name: string; contact_email: string };
 
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b px-6 py-4">
         <Link href={`/circles/${circleId}`} className="text-sm text-muted-foreground hover:underline">
-          ← {(event.circles as { name: string }).name} のイベント一覧に戻る
+          ← {circle.name} のイベント一覧に戻る
         </Link>
       </header>
 
@@ -59,7 +68,13 @@ export default async function EventPage({
         {unavailable ? (
           <p className="text-muted-foreground">このイベントは現在受付を終了しています。</p>
         ) : (
-          <ReservationForm eventId={event.id} eventTitle={event.title} />
+          <ReservationForm
+            eventId={event.id}
+            eventTitle={event.title}
+            profile={profile}
+            circleName={circle.name}
+            circleEmail={circle.contact_email}
+          />
         )}
       </div>
     </main>
