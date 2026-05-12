@@ -4,6 +4,7 @@ import { z } from "zod";
 const schema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
+  furigana: z.string().min(1),
   university: z.string().optional(),
   department: z.string().optional(),
   grade: z.string().optional(),

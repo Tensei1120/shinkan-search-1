@@ -15,6 +15,7 @@ import {
 const schema = z.object({
   email: z.string().email("正しいメールアドレスを入力してください"),
   name: z.string().min(1, "お名前を入力してください"),
+  furigana: z.string().min(1, "ふりがなを入力してください"),
   university: z.string().optional(),
   department: z.string().optional(),
   grade: z.string().optional(),
@@ -64,10 +65,17 @@ export function RegisterForm({ defaultValues, isEdit }: Props) {
         {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="name">お名前 *</Label>
-        <Input id="name" placeholder="山田 太郎" {...register("name")} />
-        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="name">お名前 *</Label>
+          <Input id="name" placeholder="山田 太郎" {...register("name")} />
+          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="furigana">ふりがな *</Label>
+          <Input id="furigana" placeholder="やまだ たろう" {...register("furigana")} />
+          {errors.furigana && <p className="text-sm text-destructive">{errors.furigana.message}</p>}
+        </div>
       </div>
 
       <div className="space-y-1">
@@ -80,38 +88,39 @@ export function RegisterForm({ defaultValues, isEdit }: Props) {
         <Input id="department" placeholder="〇〇学部" {...register("department")} />
       </div>
 
-      <div className="space-y-1">
-        <Label>学年</Label>
-        <Select
-          defaultValue={defaultValues?.grade ?? ""}
-          onValueChange={(v) => setValue("grade", (v as string) || undefined)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="選択してください" />
-          </SelectTrigger>
-          <SelectContent>
-            {GRADES.map((g) => (
-              <SelectItem key={g} value={g}>{g}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-1">
-        <Label>性別</Label>
-        <Select
-          defaultValue={defaultValues?.gender ?? ""}
-          onValueChange={(v) => setValue("gender", (v as string) || undefined)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="選択してください" />
-          </SelectTrigger>
-          <SelectContent>
-            {GENDERS.map((g) => (
-              <SelectItem key={g} value={g}>{g}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label>学年</Label>
+          <Select
+            defaultValue={defaultValues?.grade ?? ""}
+            onValueChange={(v) => setValue("grade", (v as string) || undefined)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {GRADES.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label>性別</Label>
+          <Select
+            defaultValue={defaultValues?.gender ?? ""}
+            onValueChange={(v) => setValue("gender", (v as string) || undefined)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {GENDERS.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

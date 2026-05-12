@@ -17,6 +17,7 @@ import { CATEGORIES, CATEGORY_COLORS } from "@/lib/categories";
 type StudentProfile = {
   email: string;
   name: string;
+  furigana?: string;
   university?: string;
   department?: string;
   grade?: string;
@@ -113,6 +114,9 @@ export function MyPageView({
           </div>
           <div>
             <p className="font-semibold">{profile.name}</p>
+            {profile.furigana && (
+              <p className="text-xs text-muted-foreground">{profile.furigana}</p>
+            )}
             <p className="text-xs text-muted-foreground">{profile.email}</p>
             {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
           </div>
