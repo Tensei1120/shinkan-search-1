@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = "新歓予約システム <onboarding@resend.dev>";
+const FROM = " <onboarding@resend.dev>";
 
 export async function sendEmail({
   to,
