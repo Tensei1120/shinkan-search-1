@@ -120,7 +120,7 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
         <div className="border rounded-lg p-4 mb-4 bg-muted/30 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <p className="text-xs text-muted-foreground mb-1">カテゴリ</p>
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={(v) => setCategory((v as string) ?? "all")}>
               <SelectTrigger className="h-8 text-sm">
                 <SelectValue />
               </SelectTrigger>
@@ -134,7 +134,7 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">日程</p>
-            <Select value={dateFilter} onValueChange={setDateFilter}>
+            <Select value={dateFilter} onValueChange={(v) => setDateFilter((v as string) ?? "all")}>
               <SelectTrigger className="h-8 text-sm">
                 <SelectValue />
               </SelectTrigger>
@@ -148,7 +148,7 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
           {universities.length > 0 && (
             <div>
               <p className="text-xs text-muted-foreground mb-1">大学</p>
-              <Select value={university} onValueChange={setUniversity}>
+              <Select value={university} onValueChange={(v) => setUniversity((v as string) ?? "all")}>
                 <SelectTrigger className="h-8 text-sm">
                   <SelectValue />
                 </SelectTrigger>
