@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +69,12 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "ログイン中..." : "ログイン"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              アカウントをお持ちでない方は{" "}
+              <Link href="/admin/register" className="underline hover:text-foreground">
+                新規登録
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>
