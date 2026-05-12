@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { CalendarDays, Search, BookMarked } from "lucide-react";
+import { Search, User } from "lucide-react";
+import { cookies } from "next/headers";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get("student_profile")?.value;
+  const profile = raw ? (JSON.parse(raw) as { name: string }) : null;
+
   return (
     <header className="border-b bg-background sticky top-0 z-10">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -17,18 +22,13 @@ export function SiteHeader() {
             <span className="hidden sm:inline">イベントを探す</span>
           </Link>
           <Link
-            href="/my-reservations"
+            href="/my"
             className="flex items-center gap-1 px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
-            <BookMarked className="size-4 shrink-0" />
-            <span className="hidden sm:inline">マイ予約</span>
-          </Link>
-          <Link
-            href="/calendar"
-            className="flex items-center gap-1 px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            <CalendarDays className="size-4 shrink-0" />
-            <span className="hidden sm:inline">カレンダー</span>
+            <User className="size-4 shrink-0" />
+            <span className="hidden sm:inline">
+              {profile ? profile.name : "マイページ"}
+            </span>
           </Link>
           <Link
             href="/admin"
