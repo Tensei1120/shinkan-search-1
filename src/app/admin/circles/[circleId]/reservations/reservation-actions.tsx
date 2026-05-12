@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 
 interface Props {
   reservationId: string;
-  currentStatus: "pending" | "approved" | "rejected";
+  currentStatus: "pending" | "approved" | "rejected" | "cancelled";
   reserveeName: string;
   reserveeEmail: string;
   eventTitle: string;
@@ -57,9 +57,11 @@ export default function ReservationActions({
     setMessageBody("");
   };
 
+  const canAct = currentStatus !== "cancelled" && currentStatus !== "rejected";
+
   return (
     <div className="flex gap-1 flex-wrap">
-      {currentStatus !== "approved" && (
+      {currentStatus === "pending" && (
         <Button
           size="sm"
           variant="default"
@@ -69,7 +71,7 @@ export default function ReservationActions({
           承認
         </Button>
       )}
-      {currentStatus !== "rejected" && (
+      {canAct && (
         <Button
           size="sm"
           variant="destructive"
