@@ -32,7 +32,6 @@ export default async function CircleStatsPage({
 
   const circleName = (adminRow.circles as { name: string } | null)?.name ?? "";
 
-  // All events for this circle
   const { data: events } = await supabase
     .from("events")
     .select("id, title, date, capacity, reserved_count, status")
@@ -41,7 +40,6 @@ export default async function CircleStatsPage({
 
   const eventIds = (events ?? []).map((e) => e.id);
 
-  // All reservations for those events
   const { data: reservations } = await supabase
     .from("reservations")
     .select("id, event_id, status, name, email, grade, department")
@@ -49,20 +47,17 @@ export default async function CircleStatsPage({
 
   const allRes = reservations ?? [];
 
-  // Stats aggregations
   const total = allRes.length;
   const pending = allRes.filter((r) => r.status === "pending").length;
   const approved = allRes.filter((r) => r.status === "approved").length;
   const rejected = allRes.filter((r) => r.status === "rejected").length;
   const cancelled = allRes.filter((r) => r.status === "cancelled").length;
 
-  // Per-event breakdown
   const resByEvent: Record<string, typeof allRes> = {};
   for (const r of allRes) {
     (resByEvent[r.event_id] ??= []).push(r);
   }
 
-  // Grade breakdown (for approved/pending)
   const activeRes = allRes.filter((r) => r.status === "pending" || r.status === "approved");
   const gradeCount: Record<string, number> = {};
   for (const r of activeRes) {
@@ -79,7 +74,6 @@ export default async function CircleStatsPage({
         <h1 className="text-2xl font-bold mt-1">{circleName} ― 統計</h1>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "総予約数", value: total, color: "text-foreground" },
@@ -94,7 +88,6 @@ export default async function CircleStatsPage({
         ))}
       </div>
 
-      {/* Grade breakdown */}
       {Object.keys(gradeCount).length > 0 && (
         <div>
           <h2 className="text-lg font-semibold mb-3">学年別（承認済み＋審査中）</h2>
@@ -111,7 +104,6 @@ export default async function CircleStatsPage({
         </div>
       )}
 
-      {/* Per-event breakdown */}
       <div>
         <h2 className="text-lg font-semibold mb-3">イベント別集計</h2>
         {(events ?? []).length === 0 ? (

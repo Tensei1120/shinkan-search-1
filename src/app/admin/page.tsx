@@ -22,7 +22,6 @@ export default async function AdminDashboard() {
 
   const circleIds = circles.map((c) => c.id);
 
-  // Fetch pending reservations (via event join)
   const pendingByCircle: Record<string, number> = {};
   const upcomingByCircle: Record<string, number> = {};
 

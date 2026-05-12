@@ -44,7 +44,6 @@ export default async function AdminEventsPage({
 
   const circleName = (adminRow.circles as { name: string } | null)?.name ?? "";
 
-  // Fetch reservation status counts per event
   const eventIds = (events ?? []).map((e) => e.id);
   const resByEvent: Record<string, { pending: number; approved: number; rejected: number; cancelled: number }> = {};
 
@@ -117,7 +116,6 @@ export default async function AdminEventsPage({
                   <EventActions eventId={ev.id} circleId={circleId} />
                 </div>
 
-                {/* Capacity bar */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
