@@ -67,7 +67,7 @@ export default function CircleForm({ circleId, defaultValues }: Props) {
 
       <div className="space-y-1">
         <Label>カテゴリ</Label>
-        <Select defaultValue={defaultValues.category ?? "other"} onValueChange={(v) => setValue("category", v ?? "other")}>
+        <Select defaultValue={defaultValues.category ?? "other"} onValueChange={(v) => setValue("category", (v as string) ?? "other")}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
