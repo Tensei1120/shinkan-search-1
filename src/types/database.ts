@@ -16,6 +16,8 @@ export interface Database {
           description: string | null;
           logo_url: string | null;
           contact_email: string;
+          category: string;
+          university: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -25,6 +27,8 @@ export interface Database {
           description?: string | null;
           logo_url?: string | null;
           contact_email: string;
+          category?: string;
+          university?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -34,6 +38,8 @@ export interface Database {
           description?: string | null;
           logo_url?: string | null;
           contact_email?: string;
+          category?: string;
+          university?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -124,7 +130,7 @@ export interface Database {
           grade: string;
           department: string;
           note: string | null;
-          status: "pending" | "approved" | "rejected";
+          status: "pending" | "approved" | "rejected" | "cancelled";
           created_at: string;
           updated_at: string;
         };
@@ -136,7 +142,7 @@ export interface Database {
           grade: string;
           department: string;
           note?: string | null;
-          status?: "pending" | "approved" | "rejected";
+          status?: "pending" | "approved" | "rejected" | "cancelled";
           created_at?: string;
           updated_at?: string;
         };
@@ -148,7 +154,7 @@ export interface Database {
           grade?: string;
           department?: string;
           note?: string | null;
-          status?: "pending" | "approved" | "rejected";
+          status?: "pending" | "approved" | "rejected" | "cancelled";
           updated_at?: string;
         };
         Relationships: [
@@ -163,7 +169,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      decrement_reserved_count: {
+        Args: { p_event_id: string };
+        Returns: void;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
