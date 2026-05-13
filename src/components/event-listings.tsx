@@ -32,24 +32,17 @@ type EventRow = {
   };
 };
 
-function matchesDate(dateStr: string, year: string, month: string, day: string): boolean {
-  const d = new Date(dateStr);
-  if (year && format(d, "yyyy") !== year) return false;
-  if (month && format(d, "M") !== month) return false;
-  if (day && format(d, "d") !== day) return false;
-  return true;
+function matchesDate(dateStr: string, selectedDate: string): boolean {
+  if (!selectedDate) return true;
+  return format(new Date(dateStr), "yyyy-MM-dd") === selectedDate;
 }
 
 export function EventListings({ events, universities }: { events: EventRow[]; universities: string[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
-  const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
-  const [filterMonth, setFilterMonth] = useState("");
-  const [filterDay, setFilterDay] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
   const [university, setUniversity] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
-
-  const hasDateFilter = filterMonth !== "" || filterDay !== "";
 
   const filtered = useMemo(() => {
     return events.filter((ev) => {
@@ -58,19 +51,17 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
         if (!ev.title.includes(q) && !ev.circles.name.includes(q) && !(ev.description ?? "").includes(q)) return false;
       }
       if (category !== "all" && ev.circles.category !== category) return false;
-      if (!matchesDate(ev.date, filterYear, filterMonth, filterDay)) return false;
+      if (!matchesDate(ev.date, dateFilter)) return false;
       if (university !== "all" && ev.circles.university !== university) return false;
       return true;
     });
-  }, [events, query, category, filterYear, filterMonth, filterDay, university]);
+  }, [events, query, category, dateFilter, university]);
 
-  const activeFilters = [category !== "all", hasDateFilter, university !== "all"].filter(Boolean).length;
+  const activeFilters = [category !== "all", dateFilter !== "", university !== "all"].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory("all");
-    setFilterYear(String(new Date().getFullYear()));
-    setFilterMonth("");
-    setFilterDay("");
+    setDateFilter("");
     setUniversity("all");
     setQuery("");
   };
@@ -124,34 +115,20 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
             <p className="text-xs text-muted-foreground mb-1">日程</p>
             <div className="flex items-center gap-1">
               <Input
-                type="number"
-                value={filterYear}
-                onChange={(e) => setFilterYear(e.target.value)}
-                className="h-8 text-sm w-[4.5rem] px-2"
-                min={2020}
-                max={2099}
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="h-8 text-sm flex-1"
               />
-              <span className="text-sm shrink-0">年</span>
-              <Input
-                type="number"
-                value={filterMonth}
-                onChange={(e) => setFilterMonth(e.target.value)}
-                placeholder="月"
-                className="h-8 text-sm w-10 px-2"
-                min={1}
-                max={12}
-              />
-              <span className="text-sm shrink-0">月</span>
-              <Input
-                type="number"
-                value={filterDay}
-                onChange={(e) => setFilterDay(e.target.value)}
-                placeholder="日"
-                className="h-8 text-sm w-10 px-2"
-                min={1}
-                max={31}
-              />
-              <span className="text-sm shrink-0">日</span>
+              {dateFilter && (
+                <button
+                  onClick={() => setDateFilter("")}
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label="日程をクリア"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
             </div>
           </div>
           {universities.length > 0 && (
