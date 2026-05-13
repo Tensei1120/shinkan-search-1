@@ -65,6 +65,22 @@ export default async function ReservationsPage({
     ? (reservations[0].events as { title: string } | null)?.title ?? null
     : null;
 
+  // Fetch unread message counts per reservation (student messages admin hasn't read)
+  const unreadByReservation: Record<string, number> = {};
+  const resIds = (reservations ?? []).map((r: { id: string }) => r.id);
+  if (resIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: unreadMsgs } = await (supabase as any)
+      .from("messages")
+      .select("reservation_id")
+      .in("reservation_id", resIds)
+      .eq("sender_type", "student")
+      .is("read_at", null);
+    for (const m of (unreadMsgs ?? [])) {
+      unreadByReservation[m.reservation_id] = (unreadByReservation[m.reservation_id] ?? 0) + 1;
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <div className="mb-6">
@@ -129,6 +145,7 @@ export default async function ReservationsPage({
                       reserveeName={r.name}
                       reserveeEmail={r.email}
                       eventTitle={ev.title}
+                      unreadCount={unreadByReservation[r.id] ?? 0}
                     />
                   </TableCell>
                 </TableRow>
