@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function AdminRegisterPage() {
-  const router = useRouter();
   const supabase = createClient();
 
   const [form, setForm] = useState({
@@ -68,12 +66,11 @@ export default function AdminRegisterPage() {
 
     setLoading(false);
     if (signInError) {
-      router.push("/admin/login");
+      window.location.href = "/admin/login";
       return;
     }
 
-    router.push("/admin");
-    router.refresh();
+    window.location.href = "/admin";
   };
 
   return (
@@ -165,7 +162,7 @@ export default function AdminRegisterPage() {
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              すでにアカウントをお持ちの方は{" "}
+              すでにアカウントをお持ちの方は{" "}
               <Link href="/admin/login" className="underline hover:text-foreground">
                 ログイン
               </Link>

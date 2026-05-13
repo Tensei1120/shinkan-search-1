@@ -22,13 +22,11 @@ export default function LoginPage() {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
+    setLoading(false);
     if (error) {
       setError("メールアドレスまたはパスワードが正しくありません");
-      setLoading(false);
       return;
     }
-
-    // Hard navigation so the server receives the new session cookie
     window.location.href = "/admin";
   };
 
