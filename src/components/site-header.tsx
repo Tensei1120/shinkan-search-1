@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, User } from "lucide-react";
+import { Search, User, Building2 } from "lucide-react";
 import { cookies } from "next/headers";
 
 export async function SiteHeader() {
@@ -20,6 +20,13 @@ export async function SiteHeader() {
           >
             <Search className="size-4 shrink-0" />
             <span className="hidden sm:inline">イベントを探す</span>
+          </Link>
+          <Link
+            href="/circles"
+            className="flex items-center gap-1 px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <Building2 className="size-4 shrink-0" />
+            <span className="hidden sm:inline">団体一覧</span>
           </Link>
           <Link
             href="/my"

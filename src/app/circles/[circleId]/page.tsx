@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { CATEGORIES, CATEGORY_COLORS } from "@/lib/categories";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { CalendarDays, MapPin, Users, Mail } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -26,6 +26,7 @@ export default async function CirclePage({
       .select("*")
       .eq("circle_id", circleId)
       .neq("status", "cancelled")
+      .gte("date", new Date().toISOString())
       .order("date"),
   ]);
 
@@ -38,74 +39,127 @@ export default async function CirclePage({
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="max-w-3xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
-            {circle.university && (
-              <span className="text-sm text-muted-foreground">{circle.university}</span>
+        <Link
+          href="/circles"
+          className="text-sm text-muted-foreground hover:underline mb-6 inline-block"
+        >
+          ← 団体一覧に戻る
+        </Link>
+
+        {/* Hero */}
+        <div className="flex items-start gap-5 mb-8">
+          {circle.logo_url ? (
+            <img
+              src={circle.logo_url}
+              alt={circle.name}
+              className="size-20 rounded-xl object-cover border shrink-0"
+            />
+          ) : (
+            <div className="size-20 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-3xl font-bold text-primary">
+              {circle.name.charAt(0)}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
+              {circle.university && (
+                <span className="text-sm text-muted-foreground">{circle.university}</span>
+              )}
+            </div>
+            <h1 className="text-2xl font-bold leading-snug">{circle.name}</h1>
+            {circle.contact_email && (
+              <a
+                href={`mailto:${circle.contact_email}`}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mt-1"
+              >
+                <Mail className="size-3.5 shrink-0" />
+                {circle.contact_email}
+              </a>
             )}
           </div>
-          <h1 className="text-3xl font-bold">{circle.name}</h1>
-          {circle.description && (
-            <p className="text-muted-foreground mt-2">{circle.description}</p>
-          )}
         </div>
 
-        <h2 className="text-xl font-semibold mb-4">開催予定のイベント</h2>
+        {/* Description */}
+        {circle.description && (
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold mb-2">活動について</h2>
+            <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+              {circle.description}
+            </p>
+          </section>
+        )}
 
-        {!events || events.length === 0 ? (
-          <p className="text-muted-foreground">現在募集中のイベントはありません。</p>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {events.map((event) => {
-              const isFull = event.reserved_count >= event.capacity;
-              const isClosed = event.status === "closed";
-              const unavailable = isFull || isClosed;
+        {/* Events */}
+        <section>
+          <h2 className="text-lg font-semibold mb-4">開催予定のイベント</h2>
 
-              return (
-                <Card key={event.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg">{event.title}</CardTitle>
+          {!events || events.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground border rounded-xl">
+              <p className="text-3xl mb-2">📅</p>
+              <p>現在募集中のイベントはありません。</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {events.map((event) => {
+                const isFull = event.reserved_count >= event.capacity;
+                const isClosed = event.status === "closed";
+                const unavailable = isFull || isClosed;
+                const remaining = event.capacity - event.reserved_count;
+
+                return (
+                  <div
+                    key={event.id}
+                    className="border rounded-xl p-5 flex flex-col gap-3 bg-background"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-semibold text-base leading-snug">{event.title}</h3>
                       {unavailable ? (
-                        <Badge variant="destructive">満員</Badge>
+                        <Badge variant="secondary" className="shrink-0">受付終了</Badge>
                       ) : (
-                        <Badge variant="secondary">
-                          残り {event.capacity - event.reserved_count} 席
-                        </Badge>
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+                          <Users className="size-3.5" />
+                          残り <strong className="text-foreground">{remaining}</strong> 席
+                        </span>
                       )}
                     </div>
-                    <CardDescription>
-                      {format(new Date(event.date), "M月d日(E) HH:mm", { locale: ja })}
-                      {event.location && ` ・ ${event.location}`}
-                    </CardDescription>
-                  </CardHeader>
-                  {event.description && (
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground whitespace-pre-line">
+
+                    <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <CalendarDays className="size-3.5 shrink-0" />
+                        {format(new Date(event.date), "M月d日(E) HH:mm", { locale: ja })}
+                      </span>
+                      {event.location && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="size-3.5 shrink-0" />
+                          {event.location}
+                        </span>
+                      )}
+                    </div>
+
+                    {event.description && (
+                      <p className="text-sm text-muted-foreground whitespace-pre-line line-clamp-3">
                         {event.description}
                       </p>
-                    </CardContent>
-                  )}
-                  <CardContent className="pt-0">
+                    )}
+
                     {unavailable ? (
-                      <span className={buttonVariants({ variant: "secondary" }) + " opacity-50 cursor-not-allowed w-full sm:w-auto"}>
+                      <span className={buttonVariants({ variant: "secondary" }) + " opacity-50 cursor-not-allowed w-full sm:w-auto text-center"}>
                         受付終了
                       </span>
                     ) : (
                       <Link
                         href={`/circles/${circleId}/events/${event.id}`}
-                        className={buttonVariants() + " w-full sm:w-auto"}
+                        className={buttonVariants() + " w-full sm:w-auto text-center"}
                       >
                         予約する
                       </Link>
                     )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );

@@ -8,6 +8,7 @@ const schema = z.object({
   category: z.string().optional(),
   university: z.string().optional(),
   contact_email: z.string().email().optional(),
+  logo_url: z.string().url().optional().or(z.literal("")),
 });
 
 export async function PATCH(

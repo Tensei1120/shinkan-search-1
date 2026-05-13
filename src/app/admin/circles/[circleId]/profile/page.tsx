@@ -28,6 +28,7 @@ export default async function CircleProfilePage({
   const circle = adminRow.circles as {
     id: string; name: string; description: string | null;
     contact_email: string; category: string; university: string | null;
+    logo_url: string | null;
   } | null;
 
   if (!circle) notFound();
@@ -49,6 +50,7 @@ export default async function CircleProfilePage({
           contact_email: circle.contact_email,
           category: circle.category,
           university: circle.university ?? undefined,
+          logo_url: circle.logo_url ?? undefined,
         }}
       />
     </div>

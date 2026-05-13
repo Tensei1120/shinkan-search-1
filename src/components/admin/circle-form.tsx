@@ -18,6 +18,7 @@ const schema = z.object({
   university: z.string().optional(),
   category: z.string().min(1),
   contact_email: z.string().email("正しいメールアドレスを入力してください"),
+  logo_url: z.string().url("正しいURLを入力してください").optional().or(z.literal("")),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -88,6 +89,12 @@ export default function CircleForm({ circleId, defaultValues }: Props) {
         <Label htmlFor="contact_email">連絡先メールアドレス *</Label>
         <Input id="contact_email" type="email" {...register("contact_email")} />
         {errors.contact_email && <p className="text-sm text-destructive">{errors.contact_email.message}</p>}
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="logo_url">ロゴ画像URL</Label>
+        <Input id="logo_url" type="url" placeholder="https://..." {...register("logo_url")} />
+        {errors.logo_url && <p className="text-sm text-destructive">{errors.logo_url.message}</p>}
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
