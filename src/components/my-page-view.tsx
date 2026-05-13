@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   ChevronLeft, ChevronRight, CalendarDays, MapPin,
-  CheckCircle, XCircle, Clock, Ban, User,
+  CheckCircle, XCircle, Clock, Ban, User, Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +33,7 @@ type Reservation = {
     title: string;
     date: string;
     location: string | null;
-    circles: { id: string; name: string; category: string };
+    circles: { id: string; name: string; category: string; contact_email: string };
   };
 };
 
@@ -106,6 +106,7 @@ export function MyPageView({
 
   return (
     <div className="space-y-10">
+      {/* Profile card */}
       <div className="border rounded-xl p-4 flex items-center justify-between bg-muted/20">
         <div className="flex items-center gap-3">
           <div className="size-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -128,22 +129,17 @@ export function MyPageView({
         </Link>
       </div>
 
+      {/* Calendar */}
       <div>
         <h2 className="text-lg font-semibold mb-4">予約カレンダー</h2>
         <div className="flex items-center justify-between mb-3">
-          <Button
-            variant="ghost" size="sm"
-            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
             <ChevronLeft className="size-4" />
           </Button>
           <span className="font-semibold">
             {format(currentMonth, "yyyy年M月", { locale: ja })}
           </span>
-          <Button
-            variant="ghost" size="sm"
-            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
             <ChevronRight className="size-4" />
           </Button>
         </div>
@@ -175,16 +171,13 @@ export function MyPageView({
                 onClick={() => setSelectedDay(isSelected ? null : day)}
                 className={[
                   "bg-background min-h-[52px] p-1 text-left transition-colors",
-                  isSelected
-                    ? "bg-primary/10 ring-1 ring-primary"
-                    : "hover:bg-muted/50",
+                  isSelected ? "bg-primary/10 ring-1 ring-primary" : "hover:bg-muted/50",
                 ].join(" ")}
               >
                 <span
                   className={[
                     "text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full",
-                    isToday
-                      ? "bg-primary text-primary-foreground"
+                    isToday ? "bg-primary text-primary-foreground"
                       : dow === 0 ? "text-red-500"
                       : dow === 6 ? "text-blue-500"
                       : "",
@@ -207,12 +200,8 @@ export function MyPageView({
           })}
         </div>
         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-green-500" />承認済み
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-yellow-500" />審査中
-          </span>
+          <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-green-500" />承認済み</span>
+          <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-yellow-500" />審査中</span>
         </div>
 
         {selectedDay && (
@@ -251,11 +240,10 @@ export function MyPageView({
         )}
       </div>
 
+      {/* Reservation list */}
       <div>
         <h2 className="text-lg font-semibold mb-4">予約一覧</h2>
-        {cancelError && (
-          <p className="text-sm text-destructive mb-3">{cancelError}</p>
-        )}
+        {cancelError && <p className="text-sm text-destructive mb-3">{cancelError}</p>}
         {reservations.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <p className="text-4xl mb-3">📋</p>
@@ -271,23 +259,15 @@ export function MyPageView({
               const StatusIcon = s.icon;
               const ev = r.events;
               const catColor = CATEGORY_COLORS[ev.circles.category] ?? CATEGORY_COLORS.other;
-              const catLabel =
-                CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category;
+              const catLabel = CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category;
               const canCancel = r.status === "pending" || r.status === "approved";
 
               return (
-                <div
-                  key={r.id}
-                  className="border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3"
-                >
+                <div key={r.id} className="border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
                   <div className="flex-1 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>
-                        {catLabel}
-                      </span>
-                      <span
-                        className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${s.color}`}
-                      >
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
+                      <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${s.color}`}>
                         <StatusIcon className="size-3" />{s.label}
                       </span>
                     </div>
@@ -305,24 +285,31 @@ export function MyPageView({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Link
-                      href={`/circles/${ev.circles.id}/events/${ev.id}`}
-                      className="text-xs text-muted-foreground hover:underline"
-                    >
-                      詳細
-                    </Link>
-                    {canCancel && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={cancelling === r.id}
-                        onClick={() => handleCancel(r.id)}
-                        className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs"
+                  <div className="flex flex-col sm:items-end gap-2 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/circles/${ev.circles.id}/events/${ev.id}`}
+                        className="text-xs text-muted-foreground hover:underline"
                       >
-                        {cancelling === r.id ? "処理中..." : "キャンセル"}
-                      </Button>
-                    )}
+                        詳細
+                      </Link>
+                      {canCancel && (
+                        <Button
+                          variant="outline" size="sm"
+                          disabled={cancelling === r.id}
+                          onClick={() => handleCancel(r.id)}
+                          className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs"
+                        >
+                          {cancelling === r.id ? "処理中..." : "キャンセル"}
+                        </Button>
+                      )}
+                    </div>
+                    <a
+                      href={`mailto:${ev.circles.contact_email}?subject=${encodeURIComponent(`【${ev.title}】について`)}`}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <Mail className="size-3" />管理者に連絡
+                    </a>
                   </div>
                 </div>
               );

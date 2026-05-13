@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { CheckCircle, XCircle } from "lucide-react";
 
 interface Props {
   reservationId: string;
@@ -32,6 +33,7 @@ export default function ReservationActions({
   const [messageOpen, setMessageOpen] = useState(false);
   const [messageBody, setMessageBody] = useState("");
   const [msgLoading, setMsgLoading] = useState(false);
+  const [msgResult, setMsgResult] = useState<"sent" | "error" | null>(null);
 
   const updateStatus = async (status: "approved" | "rejected") => {
     setLoading(true);
@@ -47,21 +49,22 @@ export default function ReservationActions({
   const sendMessage = async () => {
     if (!messageBody.trim()) return;
     setMsgLoading(true);
-    await fetch("/api/admin/message", {
+    setMsgResult(null);
+    const res = await fetch("/api/admin/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ to: reserveeEmail, name: reserveeName, body: messageBody, eventTitle }),
     });
     setMsgLoading(false);
-    setMessageOpen(false);
-    setMessageBody("");
+    setMsgResult(res.ok ? "sent" : "error");
+    if (res.ok) {
+      setMessageBody("");
+    }
   };
-
-  const canAct = currentStatus !== "cancelled" && currentStatus !== "rejected";
 
   return (
     <div className="flex gap-1 flex-wrap">
-      {currentStatus === "pending" && (
+      {currentStatus !== "approved" && currentStatus !== "cancelled" && (
         <Button
           size="sm"
           variant="default"
@@ -71,7 +74,7 @@ export default function ReservationActions({
           承認
         </Button>
       )}
-      {canAct && (
+      {currentStatus !== "rejected" && currentStatus !== "cancelled" && (
         <Button
           size="sm"
           variant="destructive"
@@ -86,12 +89,23 @@ export default function ReservationActions({
         メール送信
       </Button>
 
-      <Dialog open={messageOpen} onOpenChange={setMessageOpen}>
+      <Dialog open={messageOpen} onOpenChange={(open) => { setMessageOpen(open); if (!open) setMsgResult(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{reserveeName} さんへのメッセージ</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
+            {msgResult === "sent" ? (
+              <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg p-3">
+                <CheckCircle className="size-4 shrink-0" />
+                <p className="text-sm">メールを送信しました</p>
+              </div>
+            ) : msgResult === "error" ? (
+              <div className="flex items-center gap-2 text-destructive bg-destructive/10 rounded-lg p-3">
+                <XCircle className="size-4 shrink-0" />
+                <p className="text-sm">送信に失敗しました。もう一度お試しください。</p>
+              </div>
+            ) : null}
             <Label>メッセージ本文</Label>
             <Textarea
               rows={5}

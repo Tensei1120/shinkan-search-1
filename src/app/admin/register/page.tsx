@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function AdminRegisterPage() {
-  const router = useRouter();
   const supabase = createClient();
 
   const [form, setForm] = useState({
@@ -42,7 +40,6 @@ export default function AdminRegisterPage() {
 
     setLoading(true);
 
-    // Register via API (service role creates user + circle)
     const res = await fetch("/api/admin/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -62,7 +59,6 @@ export default function AdminRegisterPage() {
       return;
     }
 
-    // Auto sign-in after registration
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: form.email,
       password: form.password,
@@ -70,13 +66,11 @@ export default function AdminRegisterPage() {
 
     setLoading(false);
     if (signInError) {
-      // Registration succeeded but auto-login failed — redirect to login
-      router.push("/admin/login");
+      window.location.href = "/admin/login";
       return;
     }
 
-    router.push("/admin");
-    router.refresh();
+    window.location.href = "/admin";
   };
 
   return (
