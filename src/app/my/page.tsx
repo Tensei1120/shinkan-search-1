@@ -32,12 +32,44 @@ export default async function MyPage() {
 
   const reservations = (data ?? []) as Reservation[];
 
+  // Fetch latest message + unread count per reservation
+  type MsgInfo = { body: string; sender_type: string; created_at: string; unreadCount: number };
+  let messagesByReservation: Record<string, MsgInfo> = {};
+
+  const reservationIds = reservations.map((r) => r.id);
+  if (reservationIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: msgs } = await (supabase as any)
+      .from("messages")
+      .select("reservation_id, body, sender_type, created_at, read_at")
+      .in("reservation_id", reservationIds)
+      .order("created_at", { ascending: false });
+
+    for (const m of (msgs ?? [])) {
+      if (!messagesByReservation[m.reservation_id]) {
+        messagesByReservation[m.reservation_id] = {
+          body: m.body,
+          sender_type: m.sender_type,
+          created_at: m.created_at,
+          unreadCount: 0,
+        };
+      }
+      if (m.sender_type === "admin" && !m.read_at) {
+        messagesByReservation[m.reservation_id].unreadCount++;
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">マイページ</h1>
-        <MyPageView profile={profile} reservations={reservations} />
+        <MyPageView
+          profile={profile}
+          reservations={reservations}
+          messagesByReservation={messagesByReservation}
+        />
       </main>
     </div>
   );
