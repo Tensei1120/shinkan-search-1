@@ -25,7 +25,7 @@ export default async function CircleProfilePage({
 
   if (!adminRow) notFound();
 
-  const circle = adminRow.circles as {
+  const circle = adminRow.circles as unknown as {
     id: string; name: string; description: string | null;
     contact_email: string; category: string; university: string | null;
     logo_url: string | null;
