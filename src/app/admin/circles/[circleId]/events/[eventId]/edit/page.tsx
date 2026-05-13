@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EventForm from "@/components/admin/event-form";
+import ReminderManager from "@/components/admin/reminder-manager";
 
 export default async function EditEventPage({
   params,
@@ -46,6 +47,8 @@ export default async function EditEventPage({
           status: event.status,
         }}
       />
+      <hr className="my-8" />
+      <ReminderManager eventId={eventId} />
     </div>
   );
 }
