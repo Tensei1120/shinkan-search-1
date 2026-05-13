@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,13 +22,14 @@ export default function LoginPage() {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    setLoading(false);
     if (error) {
       setError("メールアドレスまたはパスワードが正しくありません");
+      setLoading(false);
       return;
     }
-    router.push("/admin");
-    router.refresh();
+
+    // Hard navigation so the server receives the new session cookie
+    window.location.href = "/admin";
   };
 
   return (
@@ -70,7 +69,7 @@ export default function LoginPage() {
               {loading ? "ログイン中..." : "ログイン"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              アカウントをお持ちでない方は{" "}
+              アカウントをお持ちでない方は{" "}
               <Link href="/admin/register" className="underline hover:text-foreground">
                 新規登録
               </Link>
