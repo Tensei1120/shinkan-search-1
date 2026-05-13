@@ -21,7 +21,7 @@ export default async function CirclePage({
   const { circleId } = await params;
   const supabase = await createClient();
 
-  const [{ data: circle }, { data: events }] = await Promise.all([
+  const [{ data: rawCircle }, { data: events }] = await Promise.all([
     supabase.from("circles").select("*").eq("id", circleId).single(),
     supabase
       .from("events")
@@ -32,7 +32,17 @@ export default async function CirclePage({
       .order("date"),
   ]);
 
-  if (!circle) notFound();
+  if (!rawCircle) notFound();
+
+  const circle = rawCircle as unknown as {
+    id: string; name: string; description: string | null;
+    logo_url: string | null; contact_email: string | null;
+    category: string; university: string | null;
+    member_count: number | null; admission_fee: number | null; annual_fee: number | null;
+    activity_frequency: string | null; gender_ratio: string | null; genre: string | null;
+    twitter_url: string | null; instagram_url: string | null; youtube_url: string | null;
+    line_url: string | null; website_url: string | null;
+  };
 
   const catColor = CATEGORY_COLORS[circle.category] ?? CATEGORY_COLORS.other;
   const catLabel = CATEGORIES[circle.category as keyof typeof CATEGORIES] ?? circle.category;
