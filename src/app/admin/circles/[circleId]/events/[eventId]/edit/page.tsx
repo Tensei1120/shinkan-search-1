@@ -20,8 +20,10 @@ export default async function EditEventPage({
 
   if (!event) notFound();
 
-  // datetime-local input requires "YYYY-MM-DDTHH:mm" format
-  const localDate = new Date(event.date).toISOString().slice(0, 16);
+  // Convert UTC to JST for datetime-local input (JST = UTC+9)
+  const localDate = new Date(new Date(event.date).getTime() + 9 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 16);
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">

@@ -52,7 +52,7 @@ export async function PATCH(
   }
 
   const updates = parsed.data;
-  if (updates.date) updates.date = new Date(updates.date).toISOString();
+  if (updates.date) updates.date = new Date(updates.date + "+09:00").toISOString();
 
   const { error } = await supabase
     .from("events")
