@@ -32,36 +32,15 @@ type EventRow = {
   };
 };
 
-const DATE_FILTERS = [
-  { value: "all",   label: "すべての日程" },
-  { value: "today", label: "今日" },
-  { value: "week",  label: "今週" },
-  { value: "month", label: "今月" },
-] as const;
-
-function inDateRange(dateStr: string, filter: string): boolean {
-  const d = new Date(dateStr);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (filter === "today") {
-    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-    return d >= today && d < tomorrow;
-  }
-  if (filter === "week") {
-    const week = new Date(today); week.setDate(week.getDate() + 7);
-    return d >= today && d < week;
-  }
-  if (filter === "month") {
-    const month = new Date(today); month.setDate(month.getDate() + 30);
-    return d >= today && d < month;
-  }
-  return true;
+function matchesDate(dateStr: string, selectedDate: string): boolean {
+  if (!selectedDate) return true;
+  return format(new Date(dateStr), "yyyy-MM-dd") === selectedDate;
 }
 
 export function EventListings({ events, universities }: { events: EventRow[]; universities: string[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
   const [university, setUniversity] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -72,17 +51,17 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
         if (!ev.title.includes(q) && !ev.circles.name.includes(q) && !(ev.description ?? "").includes(q)) return false;
       }
       if (category !== "all" && ev.circles.category !== category) return false;
-      if (dateFilter !== "all" && !inDateRange(ev.date, dateFilter)) return false;
+      if (!matchesDate(ev.date, dateFilter)) return false;
       if (university !== "all" && ev.circles.university !== university) return false;
       return true;
     });
   }, [events, query, category, dateFilter, university]);
 
-  const activeFilters = [category !== "all", dateFilter !== "all", university !== "all"].filter(Boolean).length;
+  const activeFilters = [category !== "all", dateFilter !== "", university !== "all"].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory("all");
-    setDateFilter("all");
+    setDateFilter("");
     setUniversity("all");
     setQuery("");
   };
@@ -134,16 +113,12 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">日程</p>
-            <Select value={dateFilter} onValueChange={(v) => setDateFilter((v as string) ?? "all")}>
-              <SelectTrigger className="h-8 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DATE_FILTERS.map((f) => (
-                  <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="h-8 text-sm"
+            />
           </div>
           {universities.length > 0 && (
             <div>
