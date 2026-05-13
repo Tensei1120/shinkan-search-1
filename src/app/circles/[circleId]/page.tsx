@@ -7,7 +7,10 @@ import { SiteHeader } from "@/components/site-header";
 import { CATEGORIES, CATEGORY_COLORS } from "@/lib/categories";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { CalendarDays, MapPin, Users, Mail } from "lucide-react";
+import {
+  CalendarDays, MapPin, Users, Mail, Globe,
+  Twitter, Instagram, Youtube, MessageCircle,
+} from "lucide-react";
 
 export const revalidate = 60;
 
@@ -35,6 +38,26 @@ export default async function CirclePage({
   const catColor = CATEGORY_COLORS[circle.category] ?? CATEGORY_COLORS.other;
   const catLabel = CATEGORIES[circle.category as keyof typeof CATEGORIES] ?? circle.category;
 
+  const infoItems = [
+    circle.member_count != null && { label: "部員数", value: `${circle.member_count}人` },
+    circle.admission_fee != null && { label: "入会金", value: `${Number(circle.admission_fee).toLocaleString()}円` },
+    circle.annual_fee != null && { label: "年会費", value: `${Number(circle.annual_fee).toLocaleString()}円` },
+    circle.activity_frequency && { label: "活動頻度", value: circle.activity_frequency },
+    circle.gender_ratio && { label: "男女比", value: circle.gender_ratio },
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  const snsLinks = [
+    circle.twitter_url && { href: circle.twitter_url, Icon: Twitter, label: "Twitter" },
+    circle.instagram_url && { href: circle.instagram_url, Icon: Instagram, label: "Instagram" },
+    circle.youtube_url && { href: circle.youtube_url, Icon: Youtube, label: "YouTube" },
+    circle.line_url && { href: circle.line_url, Icon: MessageCircle, label: "LINE" },
+    circle.website_url && { href: circle.website_url, Icon: Globe, label: "Web" },
+  ].filter(Boolean) as { href: string; Icon: React.ElementType; label: string }[];
+
+  const genreTags = circle.genre
+    ? (circle.genre as string).split(",").map((t: string) => t.trim()).filter(Boolean)
+    : [];
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -47,7 +70,7 @@ export default async function CirclePage({
         </Link>
 
         {/* Hero */}
-        <div className="flex items-start gap-5 mb-8">
+        <div className="flex items-start gap-5 mb-6">
           {circle.logo_url ? (
             <img
               src={circle.logo_url}
@@ -60,7 +83,7 @@ export default async function CirclePage({
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
               {circle.university && (
                 <span className="text-sm text-muted-foreground">{circle.university}</span>
@@ -78,6 +101,47 @@ export default async function CirclePage({
             )}
           </div>
         </div>
+
+        {/* SNS links */}
+        {snsLinks.length > 0 && (
+          <div className="flex items-center gap-4 mb-6">
+            {snsLinks.map(({ href, Icon, label }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Icon className="size-5" />
+              </a>
+            ))}
+          </div>
+        )}
+
+        {/* Info grid */}
+        {infoItems.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+            {infoItems.map(({ label, value }) => (
+              <div key={label} className="bg-muted/40 rounded-lg px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                <p className="font-semibold text-sm">{value}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Genre tags */}
+        {genreTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {genreTags.map((tag) => (
+              <span key={tag} className="text-xs bg-muted px-2.5 py-1 rounded-full text-muted-foreground">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Description */}
         {circle.description && (

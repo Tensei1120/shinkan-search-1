@@ -29,6 +29,10 @@ export default async function CircleProfilePage({
     id: string; name: string; description: string | null;
     contact_email: string; category: string; university: string | null;
     logo_url: string | null;
+    member_count: number | null; admission_fee: number | null; annual_fee: number | null;
+    activity_frequency: string | null; gender_ratio: string | null; genre: string | null;
+    twitter_url: string | null; instagram_url: string | null; youtube_url: string | null;
+    line_url: string | null; website_url: string | null;
   } | null;
 
   if (!circle) notFound();
@@ -51,6 +55,17 @@ export default async function CircleProfilePage({
           category: circle.category,
           university: circle.university ?? undefined,
           logo_url: circle.logo_url ?? undefined,
+          member_count: circle.member_count != null ? String(circle.member_count) : "",
+          admission_fee: circle.admission_fee != null ? String(circle.admission_fee) : "",
+          annual_fee: circle.annual_fee != null ? String(circle.annual_fee) : "",
+          activity_frequency: circle.activity_frequency ?? undefined,
+          gender_ratio: circle.gender_ratio ?? undefined,
+          genre: circle.genre ?? undefined,
+          twitter_url: circle.twitter_url ?? undefined,
+          instagram_url: circle.instagram_url ?? undefined,
+          youtube_url: circle.youtube_url ?? undefined,
+          line_url: circle.line_url ?? undefined,
+          website_url: circle.website_url ?? undefined,
         }}
       />
     </div>
