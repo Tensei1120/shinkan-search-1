@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import {
   CalendarDays, MapPin, Users, Mail, Globe,
-  Twitter, Instagram, Youtube, MessageCircle,
+  Twitter, Instagram, PlayCircle, MessageCircle,
 } from "lucide-react";
 
 export const revalidate = 60;
@@ -49,7 +49,7 @@ export default async function CirclePage({
   const snsLinks = [
     circle.twitter_url && { href: circle.twitter_url, Icon: Twitter, label: "Twitter" },
     circle.instagram_url && { href: circle.instagram_url, Icon: Instagram, label: "Instagram" },
-    circle.youtube_url && { href: circle.youtube_url, Icon: Youtube, label: "YouTube" },
+    circle.youtube_url && { href: circle.youtube_url, Icon: PlayCircle, label: "YouTube" },
     circle.line_url && { href: circle.line_url, Icon: MessageCircle, label: "LINE" },
     circle.website_url && { href: circle.website_url, Icon: Globe, label: "Web" },
   ].filter(Boolean) as { href: string; Icon: React.ElementType; label: string }[];
