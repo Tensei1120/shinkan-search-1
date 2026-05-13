@@ -182,12 +182,16 @@ function MessageDialog({
   );
 }
 
+type MsgInfo = { body: string; sender_type: string; created_at: string; unreadCount: number };
+
 export function MyPageView({
   profile,
   reservations: initial,
+  messagesByReservation = {},
 }: {
   profile: StudentProfile;
   reservations: Reservation[];
+  messagesByReservation?: Record<string, MsgInfo>;
 }) {
   const [reservations, setReservations] = useState(initial);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -392,14 +396,23 @@ export function MyPageView({
               const catLabel = CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category;
               const canCancel = r.status === "pending" || r.status === "approved";
 
+              const msgInfo = messagesByReservation[r.id];
+              const hasUnread = msgInfo && msgInfo.unreadCount > 0;
+
               return (
-                <div key={r.id} className="border rounded-xl p-4 flex flex-col sm:flex-row sm:items-start gap-3">
+                <div key={r.id} className={`border rounded-xl p-4 flex flex-col sm:flex-row sm:items-start gap-3 ${hasUnread ? "border-primary/40 bg-primary/5" : ""}`}>
                   <div className="flex-1 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
                       <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${s.color}`}>
                         <StatusIcon className="size-3" />{s.label}
                       </span>
+                      {hasUnread && (
+                        <span className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                          <MessageCircle className="size-3" />
+                          未読 {msgInfo.unreadCount}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground">{ev.circles.name}</p>
                     <p className="font-semibold leading-snug">{ev.title}</p>
@@ -414,6 +427,28 @@ export function MyPageView({
                         </span>
                       )}
                     </div>
+                    {/* Latest message preview */}
+                    {msgInfo && (
+                      <button
+                        onClick={() => setMsgReservation(r)}
+                        className={`mt-1 w-full text-left flex items-start gap-2 rounded-lg px-3 py-2 text-xs transition-colors ${
+                          hasUnread
+                            ? "bg-primary/10 border border-primary/20 hover:bg-primary/15"
+                            : "bg-muted/60 hover:bg-muted"
+                        }`}
+                      >
+                        <MessageCircle className={`size-3.5 shrink-0 mt-0.5 ${hasUnread ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="flex-1 min-w-0">
+                          <span className={`font-medium ${hasUnread ? "text-primary" : "text-muted-foreground"}`}>
+                            {msgInfo.sender_type === "admin" ? ev.circles.name : "あなた"}：
+                          </span>
+                          <span className="text-muted-foreground line-clamp-1">{msgInfo.body}</span>
+                        </span>
+                        <span className="text-muted-foreground shrink-0">
+                          {format(new Date(msgInfo.created_at), "M/d", { locale: ja })}
+                        </span>
+                      </button>
+                    )}
                   </div>
                   <div className="flex flex-col sm:items-end gap-2 shrink-0">
                     <div className="flex items-center gap-2">

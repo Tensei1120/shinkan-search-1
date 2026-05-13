@@ -89,14 +89,12 @@ export default async function AdminEventsPage({
             const isFull = ev.reserved_count >= ev.capacity;
 
             return (
-              <div key={ev.id} className="border rounded-xl bg-background relative hover:bg-muted/20 transition-colors">
-                {/* Clickable overlay → filtered reservations */}
+              <div key={ev.id} className="border rounded-xl bg-background grid grid-cols-[1fr_auto] overflow-hidden">
+                {/* Clickable main area */}
                 <Link
                   href={`/admin/circles/${circleId}/reservations?eventId=${ev.id}`}
-                  className="absolute inset-0 rounded-xl z-0"
-                  aria-label={`${ev.title} の予約一覧`}
-                />
-                <div className="p-4">
+                  className="p-4 hover:bg-muted/20 transition-colors"
+                >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -120,10 +118,7 @@ export default async function AdminEventsPage({
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 relative z-10">
-                      <EventActions eventId={ev.id} circleId={circleId} />
-                      <ChevronRight className="size-4 text-muted-foreground" />
-                    </div>
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0 mt-0.5" />
                   </div>
 
                   <div className="space-y-1">
@@ -147,6 +142,11 @@ export default async function AdminEventsPage({
                       />
                     </div>
                   </div>
+                </Link>
+
+                {/* Edit/Delete buttons — not part of the link */}
+                <div className="flex flex-col items-end justify-start gap-2 p-4 pl-2 border-l">
+                  <EventActions eventId={ev.id} circleId={circleId} />
                 </div>
               </div>
             );
