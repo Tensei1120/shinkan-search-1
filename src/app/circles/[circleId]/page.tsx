@@ -8,8 +8,7 @@ import { CATEGORIES, CATEGORY_COLORS } from "@/lib/categories";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import {
-  CalendarDays, MapPin, Users, Mail, Globe,
-  Twitter, Instagram, PlayCircle, MessageCircle,
+  CalendarDays, MapPin, Users, Mail, Globe, ExternalLink,
 } from "lucide-react";
 
 export const revalidate = 60;
@@ -47,12 +46,12 @@ export default async function CirclePage({
   ].filter(Boolean) as { label: string; value: string }[];
 
   const snsLinks = [
-    circle.twitter_url && { href: circle.twitter_url, Icon: Twitter, label: "Twitter" },
-    circle.instagram_url && { href: circle.instagram_url, Icon: Instagram, label: "Instagram" },
-    circle.youtube_url && { href: circle.youtube_url, Icon: PlayCircle, label: "YouTube" },
-    circle.line_url && { href: circle.line_url, Icon: MessageCircle, label: "LINE" },
-    circle.website_url && { href: circle.website_url, Icon: Globe, label: "Web" },
-  ].filter(Boolean) as { href: string; Icon: React.ElementType; label: string }[];
+    circle.twitter_url && { href: circle.twitter_url, label: "Twitter / X" },
+    circle.instagram_url && { href: circle.instagram_url, label: "Instagram" },
+    circle.youtube_url && { href: circle.youtube_url, label: "YouTube" },
+    circle.line_url && { href: circle.line_url, label: "LINE" },
+    circle.website_url && { href: circle.website_url, label: "Webサイト" },
+  ].filter(Boolean) as { href: string; label: string }[];
 
   const genreTags = circle.genre
     ? (circle.genre as string).split(",").map((t: string) => t.trim()).filter(Boolean)
@@ -104,17 +103,17 @@ export default async function CirclePage({
 
         {/* SNS links */}
         {snsLinks.length > 0 && (
-          <div className="flex items-center gap-4 mb-6">
-            {snsLinks.map(({ href, Icon, label }) => (
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            {snsLinks.map(({ href, label }) => (
               <a
                 key={label}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={label}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1 text-xs border rounded-full px-3 py-1 text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
               >
-                <Icon className="size-5" />
+                <ExternalLink className="size-3 shrink-0" />
+                {label}
               </a>
             ))}
           </div>
