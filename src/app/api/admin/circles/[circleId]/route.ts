@@ -54,8 +54,8 @@ export async function PATCH(
   }
 
   const service = createServiceClient();
-  const { error } = await service
-    .from("circles")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (service.from("circles") as any)
     .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq("id", circleId);
 
