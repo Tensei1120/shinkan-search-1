@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import EventActions from "./event-actions";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { CalendarDays, ChevronRight, MapPin, Users } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -67,7 +67,7 @@ export default async function AdminEventsPage({
       <div className="flex items-center justify-between mb-6">
         <div>
           <Link href="/admin" className="text-sm text-muted-foreground hover:underline">
-            ← ダッシュボードに戺る
+            ← ダッシュボードに戻る
           </Link>
           <h1 className="text-2xl font-bold mt-1">{circleName} ― イベント管理</h1>
         </div>
@@ -89,52 +89,63 @@ export default async function AdminEventsPage({
             const isFull = ev.reserved_count >= ev.capacity;
 
             return (
-              <div key={ev.id} className="border rounded-xl p-4 bg-background">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant={s.variant} className="text-xs">{s.label}</Badge>
-                      {stats.pending > 0 && (
-                        <Badge variant="outline" className="text-xs text-yellow-700 border-yellow-300 bg-yellow-50">
-                          未承認 {stats.pending}
-                        </Badge>
-                      )}
-                    </div>
-                    <h3 className="font-semibold truncate">{ev.title}</h3>
-                    <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays className="size-3" />
-                        {format(new Date(ev.date), "M/d(E) HH:mm", { locale: ja })}
-                      </span>
-                      {ev.location && (
+              <div key={ev.id} className="border rounded-xl bg-background relative hover:bg-muted/20 transition-colors">
+                {/* Clickable overlay → filtered reservations */}
+                <Link
+                  href={`/admin/circles/${circleId}/reservations?eventId=${ev.id}`}
+                  className="absolute inset-0 rounded-xl z-0"
+                  aria-label={`${ev.title} の予約一覧`}
+                />
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant={s.variant} className="text-xs">{s.label}</Badge>
+                        {stats.pending > 0 && (
+                          <Badge variant="outline" className="text-xs text-yellow-700 border-yellow-300 bg-yellow-50">
+                            未承認 {stats.pending}
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="font-semibold truncate">{ev.title}</h3>
+                      <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
-                          <MapPin className="size-3" />{ev.location}
+                          <CalendarDays className="size-3" />
+                          {format(new Date(ev.date), "M/d(E) HH:mm", { locale: ja })}
                         </span>
-                      )}
+                        {ev.location && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="size-3" />{ev.location}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 relative z-10">
+                      <EventActions eventId={ev.id} circleId={circleId} />
+                      <ChevronRight className="size-4 text-muted-foreground" />
                     </div>
                   </div>
-                  <EventActions eventId={ev.id} circleId={circleId} />
-                </div>
 
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Users className="size-3" />
-                      {ev.reserved_count} / {ev.capacity} 席
-                      {isFull && <span className="text-destructive font-medium ml-1">（満員）</span>}
-                    </span>
-                    <span className="flex gap-2">
-                      <span className="text-green-600">承認 {stats.approved}</span>
-                      <span className="text-yellow-600">審査中 {stats.pending}</span>
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        isFull ? "bg-destructive" : fillPct > 80 ? "bg-yellow-500" : "bg-primary"
-                      }`}
-                      style={{ width: `${fillPct}%` }}
-                    />
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Users className="size-3" />
+                        {ev.reserved_count} / {ev.capacity} 席
+                        {isFull && <span className="text-destructive font-medium ml-1">（満員）</span>}
+                      </span>
+                      <span className="flex gap-2">
+                        <span className="text-green-600">承認 {stats.approved}</span>
+                        <span className="text-yellow-600">審査中 {stats.pending}</span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          isFull ? "bg-destructive" : fillPct > 80 ? "bg-yellow-500" : "bg-primary"
+                        }`}
+                        style={{ width: `${fillPct}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import {
   ChevronLeft, ChevronRight, CalendarDays, MapPin,
-  CheckCircle, XCircle, Clock, Ban, User, Mail,
+  CheckCircle, XCircle, Clock, Ban, User, MessageCircle, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay,
@@ -37,6 +44,14 @@ type Reservation = {
   };
 };
 
+type Message = {
+  id: string;
+  sender_type: "admin" | "student";
+  body: string;
+  created_at: string;
+  read_at: string | null;
+};
+
 const DOT_COLORS: Record<string, string> = {
   approved:  "bg-green-500",
   pending:   "bg-yellow-500",
@@ -53,6 +68,120 @@ const STATUS_INFO = {
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
+function MessageDialog({
+  reservation,
+  studentEmail,
+  onClose,
+}: {
+  reservation: Reservation;
+  studentEmail: string;
+  onClose: () => void;
+}) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const loadMessages = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch(
+      `/api/messages?reservationId=${reservation.id}&email=${encodeURIComponent(studentEmail)}`
+    );
+    if (res.ok) {
+      const json = await res.json();
+      setMessages(json.messages ?? []);
+    }
+    setLoading(false);
+  }, [reservation.id, studentEmail]);
+
+  // Load on mount via ref-like pattern
+  useState(() => { loadMessages(); });
+
+  const sendMessage = async () => {
+    if (!body.trim()) return;
+    setSending(true);
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reservationId: reservation.id,
+        body: body.trim(),
+        senderType: "student",
+        email: studentEmail,
+      }),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      setMessages((prev) => [...prev, json.message]);
+      setBody("");
+    }
+    setSending(false);
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            {reservation.events.circles.name} からのメッセージ
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-2">{reservation.events.title}</p>
+
+        {/* Thread */}
+        <div className="flex flex-col gap-2 max-h-72 overflow-y-auto py-2 px-1">
+          {loading ? (
+            <p className="text-sm text-muted-foreground text-center py-4">読み込み中…</p>
+          ) : messages.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">メッセージはまだありません</p>
+          ) : (
+            messages.map((m) => {
+              const isStudent = m.sender_type === "student";
+              return (
+                <div key={m.id} className={`flex ${isStudent ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap ${
+                      isStudent
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : "bg-muted text-foreground rounded-bl-sm"
+                    }`}
+                  >
+                    {m.body}
+                    <div className={`text-[10px] mt-1 ${isStudent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                      {format(new Date(m.created_at), "M/d HH:mm", { locale: ja })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Reply */}
+        <div className="flex gap-2 mt-2">
+          <Textarea
+            rows={2}
+            className="resize-none"
+            placeholder="返信を入力…"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendMessage(); }}
+          />
+          <Button
+            size="icon"
+            onClick={sendMessage}
+            disabled={sending || !body.trim()}
+            className="shrink-0 self-end"
+          >
+            <Send className="size-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">⌘ + Enter で送信</p>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function MyPageView({
   profile,
   reservations: initial,
@@ -65,6 +194,7 @@ export function MyPageView({
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [msgReservation, setMsgReservation] = useState<Reservation | null>(null);
 
   const active = reservations.filter(
     (r) => r.status !== "cancelled" && r.status !== "rejected"
@@ -263,7 +393,7 @@ export function MyPageView({
               const canCancel = r.status === "pending" || r.status === "approved";
 
               return (
-                <div key={r.id} className="border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div key={r.id} className="border rounded-xl p-4 flex flex-col sm:flex-row sm:items-start gap-3">
                   <div className="flex-1 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
@@ -304,12 +434,15 @@ export function MyPageView({
                         </Button>
                       )}
                     </div>
-                    <a
-                      href={`mailto:${ev.circles.contact_email}?subject=${encodeURIComponent(`【${ev.title}】について`)}`}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => setMsgReservation(r)}
                     >
-                      <Mail className="size-3" />管理者に連絡
-                    </a>
+                      <MessageCircle className="size-3 mr-1" />
+                      メッセージ
+                    </Button>
                   </div>
                 </div>
               );
@@ -317,6 +450,15 @@ export function MyPageView({
           </div>
         )}
       </div>
+
+      {/* Message dialog */}
+      {msgReservation && (
+        <MessageDialog
+          reservation={msgReservation}
+          studentEmail={profile.email}
+          onClose={() => setMsgReservation(null)}
+        />
+      )}
     </div>
   );
 }
