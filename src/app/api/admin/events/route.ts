@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const { error } = await supabase.from("events").insert({
     circle_id: circleId,
     ...rest,
-    date: new Date(rest.date).toISOString(),
+    date: new Date(rest.date + "+09:00").toISOString(),
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
