@@ -48,12 +48,10 @@ export default function ReservationActions({
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Scroll to bottom whenever messages update or dialog opens
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus textarea when dialog opens
   useEffect(() => {
     if (msgOpen) {
       setTimeout(() => textareaRef.current?.focus(), 100);
@@ -118,7 +116,6 @@ export default function ReservationActions({
         </Button>
       )}
 
-      {/* Message button with unread badge */}
       <div className="relative">
         <Button
           size="sm"
@@ -142,7 +139,6 @@ export default function ReservationActions({
             <DialogTitle className="text-base">{reserveeName} さんとのメッセージ</DialogTitle>
           </DialogHeader>
 
-          {/* Message thread */}
           <div className="flex flex-col gap-2 flex-1 min-h-0 max-h-80 overflow-y-auto px-4 py-3">
             {msgLoading ? (
               <p className="text-sm text-muted-foreground text-center py-8">読み込み中…</p>
@@ -173,7 +169,6 @@ export default function ReservationActions({
             <div ref={bottomRef} />
           </div>
 
-          {/* Reply box */}
           <div className="border-t px-4 py-3 flex gap-2 items-end bg-background">
             <Textarea
               ref={textareaRef}
