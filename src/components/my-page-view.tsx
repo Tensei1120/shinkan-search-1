@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronLeft, ChevronRight, CalendarDays, MapPin,
@@ -199,6 +200,7 @@ export function MyPageView({
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [msgReservation, setMsgReservation] = useState<Reservation | null>(null);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   const active = reservations.filter(
     (r) => r.status !== "cancelled" && r.status !== "rejected"
@@ -495,6 +497,7 @@ export function MyPageView({
           onClose={() => {
             setReadIds((prev) => new Set([...prev, msgReservation.id]));
             setMsgReservation(null);
+            router.refresh();
           }}
         />
       )}

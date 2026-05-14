@@ -74,9 +74,10 @@ export default function ReservationActions({
       const json = await res.json();
       setMessages(json.messages ?? []);
       setLocalUnread(0);
+      router.refresh();
     }
     setMsgLoading(false);
-  }, [reservationId]);
+  }, [reservationId, router]);
 
   const openChat = () => { setMsgOpen(true); loadMessages(); };
 
