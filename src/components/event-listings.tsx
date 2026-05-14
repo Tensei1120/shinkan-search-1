@@ -56,7 +56,7 @@ export function EventListings({
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
 
-  const filtered = useMemo(() => {
+  const baseFiltered = useMemo(() => {
     return events.filter((ev) => {
       if (query.trim()) {
         const q = query.trim();
@@ -69,14 +69,27 @@ export function EventListings({
         const isFull = ev.reserved_count >= ev.capacity;
         if (ev.status !== "open" || isFull) return false;
       }
-      if (selectedTag) {
-        const circleTags = ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()) : [];
-        const eventTags = ev.tags ? ev.tags.split(",").map((t) => t.trim()) : [];
-        if (![...circleTags, ...eventTags].includes(selectedTag)) return false;
-      }
       return true;
     });
-  }, [events, query, category, dateFilter, university, openOnly, selectedTag]);
+  }, [events, query, category, dateFilter, university, openOnly]);
+
+  const visibleTags = useMemo(() => {
+    return [...new Set(
+      baseFiltered.flatMap((ev) => [
+        ...(ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()).filter(Boolean) : []),
+        ...(ev.tags ? ev.tags.split(",").map((t) => t.trim()).filter(Boolean) : []),
+      ])
+    )].sort();
+  }, [baseFiltered]);
+
+  const filtered = useMemo(() => {
+    if (!selectedTag) return baseFiltered;
+    return baseFiltered.filter((ev) => {
+      const circleTags = ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()) : [];
+      const eventTags = ev.tags ? ev.tags.split(",").map((t) => t.trim()) : [];
+      return [...circleTags, ...eventTags].includes(selectedTag);
+    });
+  }, [baseFiltered, selectedTag]);
 
   const activeFilters = [category !== "all", dateFilter !== "", university !== "all", openOnly].filter(Boolean).length;
 
@@ -88,6 +101,11 @@ export function EventListings({
     setOpenOnly(false);
     setSelectedTag("");
   };
+
+  // clear selected tag if it's no longer visible
+  if (selectedTag && !visibleTags.includes(selectedTag)) {
+    setSelectedTag("");
+  }
 
   return (
     <div>
@@ -118,9 +136,9 @@ export function EventListings({
         </Button>
       </div>
 
-      {allTags.length > 0 && (
+      {visibleTags.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none">
-          {allTags.map((tag) => (
+          {visibleTags.map((tag) => (
             <button
               key={tag}
               onClick={() => setSelectedTag(selectedTag === tag ? "" : tag)}
