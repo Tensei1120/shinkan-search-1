@@ -75,13 +75,15 @@ export function EventListings({
   }, [events, query, category, dateFilter, university, openOnly]);
 
   const visibleTags = useMemo(() => {
-    return [...new Set(
+    const all = [...new Set(
       baseFiltered.flatMap((ev) => [
         ...(ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()).filter(Boolean) : []),
         ...(ev.tags ? ev.tags.split(",").map((t) => t.trim()).filter(Boolean) : []),
       ])
     )].sort();
-  }, [baseFiltered]);
+    if (!query.trim()) return all;
+    return all.filter((tag) => tag.includes(query.trim()));
+  }, [baseFiltered, query]);
 
   const filtered = useMemo(() => {
     if (!selectedTag) return baseFiltered;
@@ -238,7 +240,7 @@ export function EventListings({
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <p className="text-4xl mb-3">🔍</p>
-          <p>条件に一致するイベントが見つかりまぜんでした。</p>
+          <p>条件に一致するイベントが見つかりませんでした。</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
