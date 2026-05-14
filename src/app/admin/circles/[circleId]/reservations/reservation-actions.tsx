@@ -53,9 +53,7 @@ export default function ReservationActions({
   }, [messages]);
 
   useEffect(() => {
-    if (msgOpen) {
-      setTimeout(() => textareaRef.current?.focus(), 100);
-    }
+    if (msgOpen) setTimeout(() => textareaRef.current?.focus(), 100);
   }, [msgOpen]);
 
   const updateStatus = async (status: "approved" | "rejected") => {
@@ -80,10 +78,7 @@ export default function ReservationActions({
     setMsgLoading(false);
   }, [reservationId]);
 
-  const openChat = () => {
-    setMsgOpen(true);
-    loadMessages();
-  };
+  const openChat = () => { setMsgOpen(true); loadMessages(); };
 
   const sendMessage = async () => {
     const text = body.trim();
@@ -106,16 +101,11 @@ export default function ReservationActions({
   return (
     <div className="flex gap-1 flex-wrap items-center">
       {currentStatus !== "approved" && currentStatus !== "cancelled" && (
-        <Button size="sm" variant="default" disabled={loading} onClick={() => updateStatus("approved")}>
-          承認
-        </Button>
+        <Button size="sm" variant="default" disabled={loading} onClick={() => updateStatus("approved")}>承認</Button>
       )}
       {currentStatus !== "rejected" && currentStatus !== "cancelled" && (
-        <Button size="sm" variant="destructive" disabled={loading} onClick={() => updateStatus("rejected")}>
-          却下
-        </Button>
+        <Button size="sm" variant="destructive" disabled={loading} onClick={() => updateStatus("rejected")}>却下</Button>
       )}
-
       <div className="relative">
         <Button
           size="sm"
@@ -132,13 +122,11 @@ export default function ReservationActions({
           )}
         </Button>
       </div>
-
       <Dialog open={msgOpen} onOpenChange={(open) => { setMsgOpen(open); if (!open) setBody(""); }}>
         <DialogContent className="max-w-lg flex flex-col gap-0 p-0 overflow-hidden">
           <DialogHeader className="px-4 pt-4 pb-3 border-b">
             <DialogTitle className="text-base">{reserveeName} さんとのメッセージ</DialogTitle>
           </DialogHeader>
-
           <div className="flex flex-col gap-2 flex-1 min-h-0 max-h-80 overflow-y-auto px-4 py-3">
             {msgLoading ? (
               <p className="text-sm text-muted-foreground text-center py-8">読み込み中…</p>
@@ -149,13 +137,9 @@ export default function ReservationActions({
                 const isAdmin = m.sender_type === "admin";
                 return (
                   <div key={m.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-[78%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap ${
-                        isAdmin
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : "bg-muted text-foreground rounded-bl-sm"
-                      }`}
-                    >
+                    <div className={`max-w-[78%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap ${
+                      isAdmin ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted text-foreground rounded-bl-sm"
+                    }`}>
                       {m.body}
                       <div className={`text-[10px] mt-0.5 ${isAdmin ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                         {format(new Date(m.created_at), "M/d HH:mm", { locale: ja })}
@@ -168,7 +152,6 @@ export default function ReservationActions({
             )}
             <div ref={bottomRef} />
           </div>
-
           <div className="border-t px-4 py-3 flex gap-2 items-end bg-background">
             <Textarea
               ref={textareaRef}
@@ -177,25 +160,13 @@ export default function ReservationActions({
               placeholder="メッセージを入力… (Enter で送信)"
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
             />
-            <Button
-              size="icon"
-              onClick={sendMessage}
-              disabled={sending || !body.trim()}
-              className="shrink-0"
-            >
+            <Button size="icon" onClick={sendMessage} disabled={sending || !body.trim()} className="shrink-0">
               <Send className="size-4" />
             </Button>
           </div>
-          <p className="text-[11px] text-muted-foreground text-right px-4 pb-2">
-            Shift + Enter で改行
-          </p>
+          <p className="text-[11px] text-muted-foreground text-right px-4 pb-2">Shift + Enter で改行</p>
         </DialogContent>
       </Dialog>
     </div>

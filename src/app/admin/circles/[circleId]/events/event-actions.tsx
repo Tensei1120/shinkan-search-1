@@ -25,7 +25,6 @@ export default function EventActions({
 
   const handleDelete = async () => {
     if (!confirm("このイベントを削除しますか？関連する予約もすべて削除されます。")) return;
-
     const res = await fetch(`/api/admin/events/${eventId}`, { method: "DELETE" });
     if (res.ok) {
       router.refresh();
@@ -44,7 +43,6 @@ export default function EventActions({
       >
         <Bell className="size-3.5" />
       </Button>
-
       <Link
         href={`/admin/circles/${circleId}/events/${eventId}/edit`}
         className={buttonVariants({ size: "sm", variant: "outline" })}
@@ -54,7 +52,6 @@ export default function EventActions({
       <Button size="sm" variant="ghost" onClick={handleDelete}>
         削除
       </Button>
-
       <Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
