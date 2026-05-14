@@ -24,7 +24,7 @@ export default async function HomePage() {
     capacity: ev.capacity,
     reserved_count: ev.reserved_count,
     status: ev.status as "open" | "closed" | "cancelled",
-    circles: ev.circles as { id: string; name: string; category: string; university: string | null; genre: string | null },
+    circles: ev.circles as unknown as { id: string; name: string; category: string; university: string | null; genre: string | null },
   }));
 
   const universities = [...new Set(
