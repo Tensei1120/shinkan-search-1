@@ -107,19 +107,22 @@ export default function ReservationActions({
         <Button size="sm" variant="destructive" disabled={loading} onClick={() => updateStatus("rejected")}>却下</Button>
       )}
       <div className="relative">
+        {localUnread > 0 && (
+          <span className="absolute -top-1 -right-1 z-10 flex size-4 items-center justify-center">
+            <span className="animate-ping absolute inline-flex size-full rounded-full bg-rose-400 opacity-75" />
+            <span className="relative flex size-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+              {localUnread > 9 ? "9+" : localUnread}
+            </span>
+          </span>
+        )}
         <Button
           size="sm"
           variant={localUnread > 0 ? "default" : "outline"}
           onClick={openChat}
-          className={localUnread > 0 ? "pr-2" : ""}
+          className={localUnread > 0 ? "bg-rose-500 hover:bg-rose-600 border-rose-500" : ""}
         >
           <MessageCircle className="size-3.5 mr-1" />
           メッセージ
-          {localUnread > 0 && (
-            <span className="ml-1.5 bg-white text-primary text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-              {localUnread}
-            </span>
-          )}
         </Button>
       </div>
       <Dialog open={msgOpen} onOpenChange={(open) => { setMsgOpen(open); if (!open) setBody(""); }}>

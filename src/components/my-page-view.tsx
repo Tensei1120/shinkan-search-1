@@ -399,7 +399,7 @@ export function MyPageView({
               const hasUnread = msgInfo && msgInfo.unreadCount > 0;
 
               return (
-                <div key={r.id} className={`border rounded-xl p-4 flex flex-col sm:flex-row sm:items-start gap-3 ${hasUnread ? "border-primary/40 bg-primary/5" : ""}`}>
+                <div key={r.id} className={`border rounded-xl p-4 flex flex-col sm:flex-row sm:items-start gap-3 transition-colors ${hasUnread ? "border-rose-400 bg-rose-50 dark:bg-rose-950/20" : ""}`}>
                   <div className="flex-1 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{catLabel}</span>
@@ -407,9 +407,10 @@ export function MyPageView({
                         <StatusIcon className="size-3" />{s.label}
                       </span>
                       {hasUnread && (
-                        <span className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                          <MessageCircle className="size-3" />
-                          未読 {msgInfo.unreadCount}
+                        <span className="relative flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-rose-500 text-white">
+                          <span className="animate-ping absolute inset-0 rounded-full bg-rose-400 opacity-50" />
+                          <MessageCircle className="size-3 relative" />
+                          <span className="relative">新着メッセージ {msgInfo.unreadCount}件</span>
                         </span>
                       )}
                     </div>
@@ -432,13 +433,13 @@ export function MyPageView({
                         onClick={() => setMsgReservation(r)}
                         className={`mt-1 w-full text-left flex items-start gap-2 rounded-lg px-3 py-2 text-xs transition-colors ${
                           hasUnread
-                            ? "bg-primary/10 border border-primary/20 hover:bg-primary/15"
+                            ? "bg-rose-100 border border-rose-200 hover:bg-rose-100/80 dark:bg-rose-950/30 dark:border-rose-800"
                             : "bg-muted/60 hover:bg-muted"
                         }`}
                       >
-                        <MessageCircle className={`size-3.5 shrink-0 mt-0.5 ${hasUnread ? "text-primary" : "text-muted-foreground"}`} />
+                        <MessageCircle className={`size-3.5 shrink-0 mt-0.5 ${hasUnread ? "text-rose-500" : "text-muted-foreground"}`} />
                         <span className="flex-1 min-w-0">
-                          <span className={`font-medium ${hasUnread ? "text-primary" : "text-muted-foreground"}`}>
+                          <span className={`font-medium ${hasUnread ? "text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}>
                             {msgInfo.sender_type === "admin" ? ev.circles.name : "あなた"}：
                           </span>
                           <span className="text-muted-foreground line-clamp-1">{msgInfo.body}</span>
@@ -469,9 +470,9 @@ export function MyPageView({
                       )}
                     </div>
                     <Button
-                      variant="outline"
+                      variant={hasUnread ? "default" : "outline"}
                       size="sm"
-                      className="text-xs"
+                      className={`text-xs ${hasUnread ? "bg-rose-500 hover:bg-rose-600 border-rose-500" : ""}`}
                       onClick={() => setMsgReservation(r)}
                     >
                       <MessageCircle className="size-3 mr-1" />
