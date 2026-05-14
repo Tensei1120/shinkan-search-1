@@ -42,6 +42,7 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
   const [category, setCategory] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
   const [university, setUniversity] = useState("all");
+  const [openOnly, setOpenOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
   const filtered = useMemo(() => {
@@ -53,17 +54,22 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
       if (category !== "all" && ev.circles.category !== category) return false;
       if (!matchesDate(ev.date, dateFilter)) return false;
       if (university !== "all" && ev.circles.university !== university) return false;
+      if (openOnly) {
+        const isFull = ev.reserved_count >= ev.capacity;
+        if (ev.status !== "open" || isFull) return false;
+      }
       return true;
     });
-  }, [events, query, category, dateFilter, university]);
+  }, [events, query, category, dateFilter, university, openOnly]);
 
-  const activeFilters = [category !== "all", dateFilter !== "", university !== "all"].filter(Boolean).length;
+  const activeFilters = [category !== "all", dateFilter !== "", university !== "all", openOnly].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory("all");
     setDateFilter("");
     setUniversity("all");
     setQuery("");
+    setOpenOnly(false);
   };
 
   return (
@@ -147,6 +153,18 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
               </Select>
             </div>
           )}
+          <div className="flex items-center gap-2 sm:col-span-3">
+            <input
+              type="checkbox"
+              id="open-only"
+              checked={openOnly}
+              onChange={(e) => setOpenOnly(e.target.checked)}
+              className="size-4 rounded accent-primary cursor-pointer"
+            />
+            <label htmlFor="open-only" className="text-sm cursor-pointer select-none">
+              受付中のイベントのみ表示
+            </label>
+          </div>
         </div>
       )}
 
