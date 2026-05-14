@@ -9,7 +9,7 @@ export default async function HomePage() {
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, description, date, location, capacity, reserved_count, status, circles!inner(id, name, category, university)")
+    .select("id, title, description, date, location, capacity, reserved_count, status, circles!inner(id, name, category, university, genre)")
     .neq("status", "cancelled")
     .gte("date", new Date().toISOString())
     .order("date", { ascending: true })
@@ -24,11 +24,17 @@ export default async function HomePage() {
     capacity: ev.capacity,
     reserved_count: ev.reserved_count,
     status: ev.status as "open" | "closed" | "cancelled",
-    circles: ev.circles as { id: string; name: string; category: string; university: string | null },
+    circles: ev.circles as { id: string; name: string; category: string; university: string | null; genre: string | null },
   }));
 
   const universities = [...new Set(
     rows.map((r) => r.circles.university).filter((u): u is string => !!u)
+  )].sort();
+
+  const allTags = [...new Set(
+    rows.flatMap((r) =>
+      r.circles.genre ? r.circles.genre.split(",").map((t) => t.trim()).filter(Boolean) : []
+    )
   )].sort();
 
   return (
@@ -41,7 +47,7 @@ export default async function HomePage() {
             気になるイベントを見つけて、今すぐ予約しよう
           </p>
         </div>
-        <EventListings events={rows} universities={universities} />
+        <EventListings events={rows} universities={universities} allTags={allTags} />
       </main>
     </div>
   );

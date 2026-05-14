@@ -29,6 +29,7 @@ type EventRow = {
     name: string;
     category: string;
     university: string | null;
+    genre: string | null;
   };
 };
 
@@ -37,13 +38,22 @@ function matchesDate(dateStr: string, selectedDate: string): boolean {
   return format(new Date(dateStr), "yyyy-MM-dd") === selectedDate;
 }
 
-export function EventListings({ events, universities }: { events: EventRow[]; universities: string[] }) {
+export function EventListings({
+  events,
+  universities,
+  allTags = [],
+}: {
+  events: EventRow[];
+  universities: string[];
+  allTags?: string[];
+}) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
   const [university, setUniversity] = useState("all");
   const [openOnly, setOpenOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
 
   const filtered = useMemo(() => {
     return events.filter((ev) => {
@@ -58,9 +68,13 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
         const isFull = ev.reserved_count >= ev.capacity;
         if (ev.status !== "open" || isFull) return false;
       }
+      if (selectedTag) {
+        const tags = ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()) : [];
+        if (!tags.includes(selectedTag)) return false;
+      }
       return true;
     });
-  }, [events, query, category, dateFilter, university, openOnly]);
+  }, [events, query, category, dateFilter, university, openOnly, selectedTag]);
 
   const activeFilters = [category !== "all", dateFilter !== "", university !== "all", openOnly].filter(Boolean).length;
 
@@ -70,6 +84,7 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
     setUniversity("all");
     setQuery("");
     setOpenOnly(false);
+    setSelectedTag("");
   };
 
   return (
@@ -100,6 +115,25 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
           )}
         </Button>
       </div>
+
+      {allTags.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(selectedTag === tag ? "" : tag)}
+              className={[
+                "shrink-0 text-xs px-3 py-1 rounded-full border transition-colors",
+                selectedTag === tag
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {showFilters && (
         <div className="border rounded-lg p-4 mb-4 bg-muted/30 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -172,7 +206,7 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
         <p className="text-sm text-muted-foreground">
           {filtered.length} 件のイベント
         </p>
-        {(activeFilters > 0 || query.trim()) && (
+        {(activeFilters > 0 || query.trim() || selectedTag) && (
           <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
             <X className="size-3" /> フィルターをリセット
           </button>
