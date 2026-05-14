@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search, MapPin, Calendar, Users, ChevronRight, SlidersHorizontal, X,
@@ -102,10 +102,11 @@ export function EventListings({
     setSelectedTag("");
   };
 
-  // clear selected tag if it's no longer visible
-  if (selectedTag && !visibleTags.includes(selectedTag)) {
-    setSelectedTag("");
-  }
+  useEffect(() => {
+    if (selectedTag && !visibleTags.includes(selectedTag)) {
+      setSelectedTag("");
+    }
+  }, [visibleTags, selectedTag]);
 
   return (
     <div>
