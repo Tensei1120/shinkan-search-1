@@ -9,14 +9,13 @@ export default async function HomePage() {
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, description, date, location, capacity, reserved_count, status, circles!inner(id, name, category, university, genre)")
+    .select("id, title, description, date, location, capacity, reserved_count, status, tags, circles!inner(id, name, category, university, genre)")
     .neq("status", "cancelled")
     .gte("date", new Date().toISOString())
     .order("date", { ascending: true })
     .limit(200);
 
   type CircleShape = { id: string; name: string; category: string; university: string | null; genre: string | null };
-  type EventShape = { tags: string | null };
 
   const rows = (events ?? []).map((ev) => ({
     id: ev.id,
@@ -27,7 +26,7 @@ export default async function HomePage() {
     capacity: ev.capacity,
     reserved_count: ev.reserved_count,
     status: ev.status as "open" | "closed" | "cancelled",
-    tags: (ev as unknown as EventShape).tags,
+    tags: (ev as unknown as { tags: string | null }).tags,
     circles: ev.circles as unknown as CircleShape,
   }));
 
