@@ -7,7 +7,8 @@ export const revalidate = 60;
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const { data: events } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: events } = await (supabase as any)
     .from("events")
     .select("id, title, description, date, location, capacity, reserved_count, status, tags, circles!inner(id, name, category, university, genre)")
     .neq("status", "cancelled")
@@ -16,8 +17,9 @@ export default async function HomePage() {
     .limit(200);
 
   type CircleShape = { id: string; name: string; category: string; university: string | null; genre: string | null };
+  type EvShape = { id: string; title: string; description: string | null; date: string; location: string | null; capacity: number; reserved_count: number; status: string; tags: string | null; circles: CircleShape };
 
-  const rows = (events ?? []).map((ev) => ({
+  const rows = ((events ?? []) as EvShape[]).map((ev) => ({
     id: ev.id,
     title: ev.title,
     description: ev.description,
@@ -26,8 +28,8 @@ export default async function HomePage() {
     capacity: ev.capacity,
     reserved_count: ev.reserved_count,
     status: ev.status as "open" | "closed" | "cancelled",
-    tags: (ev as unknown as { tags: string | null }).tags,
-    circles: ev.circles as unknown as CircleShape,
+    tags: ev.tags,
+    circles: ev.circles,
   }));
 
   const universities = [...new Set(
