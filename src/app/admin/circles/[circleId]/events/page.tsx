@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import EventActions from "./event-actions";
-import { CalendarDays, ChevronRight, MapPin, Users } from "lucide-react";
+import { CalendarDays, ChevronRight, MapPin, Users, MessageCircle } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -46,11 +46,12 @@ export default async function AdminEventsPage({
 
   const eventIds = (events ?? []).map((e) => e.id);
   const resByEvent: Record<string, { pending: number; approved: number; rejected: number; cancelled: number }> = {};
+  const unreadByEvent: Record<string, number> = {};
 
   if (eventIds.length > 0) {
     const { data: resData } = await supabase
       .from("reservations")
-      .select("event_id, status")
+      .select("id, event_id, status")
       .in("event_id", eventIds);
 
     for (const r of (resData ?? [])) {
@@ -59,6 +60,25 @@ export default async function AdminEventsPage({
       }
       const key = r.status as keyof typeof resByEvent[string];
       if (key in resByEvent[r.event_id]) resByEvent[r.event_id][key]++;
+    }
+
+    const resIds = (resData ?? []).map((r) => r.id);
+    if (resIds.length > 0) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: unreadMsgs } = await (supabase as any)
+          .from("messages")
+          .select("reservation_id")
+          .in("reservation_id", resIds)
+          .eq("sender_type", "student")
+          .is("read_at", null);
+        const resEventMap: Record<string, string> = {};
+        for (const r of (resData ?? [])) resEventMap[r.id] = r.event_id;
+        for (const m of (unreadMsgs ?? [])) {
+          const eid = resEventMap[m.reservation_id];
+          if (eid) unreadByEvent[eid] = (unreadByEvent[eid] ?? 0) + 1;
+        }
+      } catch { /* messages table may not exist yet */ }
     }
   }
 
@@ -83,13 +103,14 @@ export default async function AdminEventsPage({
           {events.map((ev) => {
             const s = STATUS_LABEL[ev.status as keyof typeof STATUS_LABEL] ?? STATUS_LABEL.open;
             const stats = resByEvent[ev.id] ?? { pending: 0, approved: 0, rejected: 0, cancelled: 0 };
+            const unreadMsg = unreadByEvent[ev.id] ?? 0;
             const fillPct = ev.capacity > 0
               ? Math.min(100, Math.round((ev.reserved_count / ev.capacity) * 100))
               : 0;
             const isFull = ev.reserved_count >= ev.capacity;
 
             return (
-              <div key={ev.id} className="border rounded-xl bg-background grid grid-cols-[1fr_auto] overflow-hidden">
+              <div key={ev.id} className={`border rounded-xl bg-background grid grid-cols-[1fr_auto] overflow-hidden ${unreadMsg > 0 ? "border-rose-300" : ""}`}>
                 {/* Clickable main area */}
                 <Link
                   href={`/admin/circles/${circleId}/reservations?eventId=${ev.id}`}
@@ -97,8 +118,14 @@ export default async function AdminEventsPage({
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <Badge variant={s.variant} className="text-xs">{s.label}</Badge>
+                        {unreadMsg > 0 && (
+                          <Badge className="text-xs gap-1 bg-rose-500 hover:bg-rose-500">
+                            <MessageCircle className="size-3" />
+                            未読 {unreadMsg}
+                          </Badge>
+                        )}
                         {stats.pending > 0 && (
                           <Badge variant="outline" className="text-xs text-yellow-700 border-yellow-300 bg-yellow-50">
                             未承認 {stats.pending}

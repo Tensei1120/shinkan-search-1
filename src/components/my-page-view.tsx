@@ -198,6 +198,7 @@ export function MyPageView({
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [msgReservation, setMsgReservation] = useState<Reservation | null>(null);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
   const active = reservations.filter(
     (r) => r.status !== "cancelled" && r.status !== "rejected"
@@ -396,7 +397,7 @@ export function MyPageView({
               const canCancel = r.status === "pending" || r.status === "approved";
 
               const msgInfo = messagesByReservation[r.id];
-              const hasUnread = msgInfo && msgInfo.unreadCount > 0;
+              const hasUnread = msgInfo && msgInfo.unreadCount > 0 && !readIds.has(r.id);
 
               return (
                 <div key={r.id} className={`border rounded-xl p-4 flex flex-col sm:flex-row sm:items-start gap-3 transition-colors ${hasUnread ? "border-rose-400 bg-rose-50 dark:bg-rose-950/20" : ""}`}>
@@ -491,7 +492,10 @@ export function MyPageView({
         <MessageDialog
           reservation={msgReservation}
           studentEmail={profile.email}
-          onClose={() => setMsgReservation(null)}
+          onClose={() => {
+            setReadIds((prev) => new Set([...prev, msgReservation.id]));
+            setMsgReservation(null);
+          }}
         />
       )}
     </div>
