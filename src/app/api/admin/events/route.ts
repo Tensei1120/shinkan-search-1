@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
 
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { error } = await supabase.from("events").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("events").insert({
     circle_id: circleId,
     ...rest,
     date: new Date(rest.date + "+09:00").toISOString(),

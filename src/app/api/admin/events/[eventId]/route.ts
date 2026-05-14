@@ -55,7 +55,8 @@ export async function PATCH(
   const updates = parsed.data;
   if (updates.date) updates.date = new Date(updates.date + "+09:00").toISOString();
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("events")
     .update(updates)
     .eq("id", eventId);
