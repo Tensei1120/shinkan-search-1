@@ -24,6 +24,7 @@ type EventRow = {
   capacity: number;
   reserved_count: number;
   status: "open" | "closed" | "cancelled";
+  tags: string | null | undefined;
   circles: {
     id: string;
     name: string;
@@ -69,8 +70,9 @@ export function EventListings({
         if (ev.status !== "open" || isFull) return false;
       }
       if (selectedTag) {
-        const tags = ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()) : [];
-        if (!tags.includes(selectedTag)) return false;
+        const circleTags = ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()) : [];
+        const eventTags = ev.tags ? ev.tags.split(",").map((t) => t.trim()) : [];
+        if (![...circleTags, ...eventTags].includes(selectedTag)) return false;
       }
       return true;
     });
@@ -255,6 +257,16 @@ export function EventListings({
                     </span>
                   )}
                 </div>
+
+                {ev.tags && (
+                  <div className="flex flex-wrap gap-1">
+                    {ev.tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
+                      <span key={tag} className="text-[11px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 <div className="mt-auto flex items-center justify-between">
                   {unavailable ? (

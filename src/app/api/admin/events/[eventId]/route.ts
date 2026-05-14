@@ -9,6 +9,7 @@ const patchSchema = z.object({
   location: z.string().optional(),
   capacity: z.coerce.number().int().min(1).optional(),
   status: z.enum(["open", "closed", "cancelled"]).optional(),
+  tags: z.string().optional(),
 });
 
 async function verifyAdmin(

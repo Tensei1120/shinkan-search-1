@@ -45,6 +45,7 @@ export default async function EditEventPage({
           location: event.location ?? "",
           capacity: event.capacity,
           status: event.status,
+          tags: (event as unknown as { tags: string | null }).tags ?? "",
         }}
       />
       <hr className="my-8" />

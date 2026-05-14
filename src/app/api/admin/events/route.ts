@@ -10,6 +10,7 @@ const schema = z.object({
   location: z.string().optional(),
   capacity: z.coerce.number().int().min(1),
   status: z.enum(["open", "closed", "cancelled"]).default("open"),
+  tags: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {

@@ -24,6 +24,7 @@ const schema = z.object({
   location: z.string().optional(),
   capacity: z.number().int().min(1, "定員は1以上にしてください"),
   status: z.enum(["open", "closed", "cancelled"]),
+  tags: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -114,6 +115,11 @@ export default function EventForm({ circleId, defaultValues, eventId }: Props) {
             <SelectItem value="cancelled">中止</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="tags">タグ</Label>
+        <Input id="tags" placeholder="例: 初心者歓迎, 体験入部, 無料（カンマ区切り）" {...register("tags")} />
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

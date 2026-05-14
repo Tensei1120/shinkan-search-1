@@ -15,6 +15,9 @@ export default async function HomePage() {
     .order("date", { ascending: true })
     .limit(200);
 
+  type CircleShape = { id: string; name: string; category: string; university: string | null; genre: string | null };
+  type EventShape = { tags: string | null };
+
   const rows = (events ?? []).map((ev) => ({
     id: ev.id,
     title: ev.title,
@@ -24,7 +27,8 @@ export default async function HomePage() {
     capacity: ev.capacity,
     reserved_count: ev.reserved_count,
     status: ev.status as "open" | "closed" | "cancelled",
-    circles: ev.circles as unknown as { id: string; name: string; category: string; university: string | null; genre: string | null },
+    tags: (ev as unknown as EventShape).tags,
+    circles: ev.circles as unknown as CircleShape,
   }));
 
   const universities = [...new Set(
@@ -32,9 +36,10 @@ export default async function HomePage() {
   )].sort();
 
   const allTags = [...new Set(
-    rows.flatMap((r) =>
-      r.circles.genre ? r.circles.genre.split(",").map((t) => t.trim()).filter(Boolean) : []
-    )
+    rows.flatMap((r) => [
+      ...(r.circles.genre ? r.circles.genre.split(",").map((t) => t.trim()).filter(Boolean) : []),
+      ...(r.tags ? r.tags.split(",").map((t) => t.trim()).filter(Boolean) : []),
+    ])
   )].sort();
 
   return (
