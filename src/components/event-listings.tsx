@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
-  Search, MapPin, Calendar, Users, ChevronRight, SlidersHorizontal, X, Heart,
+  Search, MapPin, Calendar, Users, ChevronRight, SlidersHorizontal, X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -41,8 +41,6 @@ function matchesDate(dateStr: string, selectedDate: string): boolean {
   return format(new Date(dateStr), "yyyy-MM-dd") === selectedDate;
 }
 
-const FAVORITES_KEY = "shinkan_favorite_events";
-
 export function EventListings({
   events,
   universities,
@@ -57,27 +55,9 @@ export function EventListings({
   const [dateFilter, setDateFilter] = useState("");
   const [university, setUniversity] = useState("all");
   const [openOnly, setOpenOnly] = useState(false);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date-asc");
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(FAVORITES_KEY);
-      if (stored) setFavorites(new Set(JSON.parse(stored)));
-    } catch { /* ignore */ }
-  }, []);
-
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      try { localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
-      return next;
-    });
-  };
 
   const baseFiltered = useMemo(() => {
     return events.filter((ev) => {
@@ -93,10 +73,9 @@ export function EventListings({
         const isFull = ev.reserved_count >= ev.capacity;
         if (ev.status !== "open" || isFull) return false;
       }
-      if (favoritesOnly && !favorites.has(ev.id)) return false;
       return true;
     });
-  }, [events, query, category, dateFilter, university, openOnly, favoritesOnly, favorites]);
+  }, [events, query, category, dateFilter, university, openOnly]);
 
   const visibleTags = useMemo(() => {
     const all = [...new Set(
@@ -126,7 +105,7 @@ export function EventListings({
     });
   }, [baseFiltered, selectedTag, sortKey]);
 
-  const activeFilters = [category !== "all", dateFilter !== "", university !== "all", openOnly, favoritesOnly].filter(Boolean).length;
+  const activeFilters = [category !== "all", dateFilter !== "", university !== "all", openOnly].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory("all");
@@ -134,7 +113,6 @@ export function EventListings({
     setUniversity("all");
     setQuery("");
     setOpenOnly(false);
-    setFavoritesOnly(false);
     setSelectedTag("");
   };
 
@@ -254,15 +232,6 @@ export function EventListings({
               />
               受付中のイベントのみ表示
             </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={favoritesOnly}
-                onChange={(e) => setFavoritesOnly(e.target.checked)}
-                className="size-4 rounded accent-primary cursor-pointer"
-              />
-              お気に入りのみ表示
-            </label>
           </div>
         </div>
       )}
@@ -304,26 +273,16 @@ export function EventListings({
             const unavailable = isFull || isClosed;
             const catColor = CATEGORY_COLORS[ev.circles.category] ?? CATEGORY_COLORS.other;
             const remaining = ev.capacity - ev.reserved_count;
-            const isFav = favorites.has(ev.id);
 
             return (
               <div key={ev.id} className="border rounded-xl p-4 flex flex-col gap-3 hover:shadow-md transition-shadow bg-background">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>
-                      {CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category}
-                    </span>
-                    {ev.circles.university && (
-                      <span className="text-xs text-muted-foreground">{ev.circles.university}</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => toggleFavorite(ev.id)}
-                    className="shrink-0 text-muted-foreground hover:text-rose-500 transition-colors"
-                    aria-label={isFav ? "お気に入り解除" : "お気に入り追加"}
-                  >
-                    <Heart className={`size-4 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
-                  </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>
+                    {CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category}
+                  </span>
+                  {ev.circles.university && (
+                    <span className="text-xs text-muted-foreground">{ev.circles.university}</span>
+                  )}
                 </div>
 
                 <div>

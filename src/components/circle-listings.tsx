@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { Search, SlidersHorizontal, X, ChevronRight, CalendarDays } from "lucide-react";
+import { Search, SlidersHorizontal, X, ChevronRight, CalendarDays, Heart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, CATEGORY_COLORS } from "@/lib/categories";
+
+const CIRCLE_FAVORITES_KEY = "shinkan_favorite_circles";
 
 type CircleRow = {
   id: string;
@@ -31,6 +33,25 @@ export function CircleListings({
   const [category, setCategory] = useState("all");
   const [university, setUniversity] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CIRCLE_FAVORITES_KEY);
+      if (stored) setFavorites(new Set(JSON.parse(stored)));
+    } catch { /* ignore */ }
+  }, []);
+
+  const toggleFavorite = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      try { localStorage.setItem(CIRCLE_FAVORITES_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   const filtered = useMemo(() => {
     return circles.filter((c) => {
@@ -40,16 +61,18 @@ export function CircleListings({
       }
       if (category !== "all" && c.category !== category) return false;
       if (university !== "all" && c.university !== university) return false;
+      if (favoritesOnly && !favorites.has(c.id)) return false;
       return true;
     });
-  }, [circles, query, category, university]);
+  }, [circles, query, category, university, favoritesOnly, favorites]);
 
-  const activeFilters = [category !== "all", university !== "all"].filter(Boolean).length;
+  const activeFilters = [category !== "all", university !== "all", favoritesOnly].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory("all");
     setUniversity("all");
     setQuery("");
+    setFavoritesOnly(false);
   };
 
   return (
@@ -113,6 +136,17 @@ export function CircleListings({
               </Select>
             </div>
           )}
+          <div className="sm:col-span-2">
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={favoritesOnly}
+                onChange={(e) => setFavoritesOnly(e.target.checked)}
+                className="size-4 rounded accent-primary cursor-pointer"
+              />
+              お気に入りのみ表示
+            </label>
+          </div>
         </div>
       )}
 
@@ -138,6 +172,7 @@ export function CircleListings({
           {filtered.map((circle) => {
             const catColor = CATEGORY_COLORS[circle.category] ?? CATEGORY_COLORS.other;
             const catLabel = CATEGORIES[circle.category as keyof typeof CATEGORIES] ?? circle.category;
+            const isFav = favorites.has(circle.id);
             return (
               <Link
                 key={circle.id}
@@ -165,6 +200,13 @@ export function CircleListings({
                       <p className="text-xs text-muted-foreground">{circle.university}</p>
                     )}
                   </div>
+                  <button
+                    onClick={(e) => toggleFavorite(e, circle.id)}
+                    className="shrink-0 text-muted-foreground hover:text-rose-500 transition-colors"
+                    aria-label={isFav ? "お気に入り解除" : "お気に入り追加"}
+                  >
+                    <Heart className={`size-4 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
+                  </button>
                 </div>
 
                 {circle.description && (
