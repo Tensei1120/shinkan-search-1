@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import {
   ChevronLeft, ChevronRight, CalendarDays, MapPin,
@@ -94,8 +94,7 @@ function MessageDialog({
     setLoading(false);
   }, [reservation.id, studentEmail]);
 
-  // Load on mount via ref-like pattern
-  useState(() => { loadMessages(); });
+  useEffect(() => { loadMessages(); }, [loadMessages]);
 
   const sendMessage = async () => {
     if (!body.trim()) return;
