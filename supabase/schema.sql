@@ -8,6 +8,19 @@ create table circles (
   description text,
   logo_url text,
   contact_email text not null,
+  category text not null default 'other' check (category in ('sports','culture','academic','music','outdoor','food','incircle','other')),
+  university text,
+  member_count integer,
+  admission_fee integer,
+  annual_fee integer,
+  activity_frequency text,
+  gender_ratio text,
+  genre text,
+  twitter_url text,
+  instagram_url text,
+  youtube_url text,
+  line_url text,
+  website_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -45,7 +58,7 @@ create table reservations (
   grade text not null,
   department text not null,
   note text,
-  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected', 'cancelled')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
