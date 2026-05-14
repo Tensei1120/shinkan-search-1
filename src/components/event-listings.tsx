@@ -60,7 +60,8 @@ export function EventListings({
     return events.filter((ev) => {
       if (query.trim()) {
         const q = query.trim();
-        if (!ev.title.includes(q) && !ev.circles.name.includes(q) && !(ev.description ?? "").includes(q)) return false;
+        const inTags = (ev.tags ?? "").includes(q) || (ev.circles.genre ?? "").includes(q);
+        if (!ev.title.includes(q) && !ev.circles.name.includes(q) && !(ev.description ?? "").includes(q) && !inTags) return false;
       }
       if (category !== "all" && ev.circles.category !== category) return false;
       if (!matchesDate(ev.date, dateFilter)) return false;
@@ -237,7 +238,7 @@ export function EventListings({
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <p className="text-4xl mb-3">🔍</p>
-          <p>条件に一致するイベントが見つかりませんでした。</p>
+          <p>条件に一致するイベントが見つかりまぜんでした。</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
