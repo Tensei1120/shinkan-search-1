@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
-  Search, MapPin, Calendar, Users, ChevronRight, SlidersHorizontal, X,
+  Search, MapPin, Calendar, Users, ChevronRight, SlidersHorizontal, X, Heart,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,47 +24,125 @@ type EventRow = {
   capacity: number;
   reserved_count: number;
   status: "open" | "closed" | "cancelled";
+  tags: string | null | undefined;
   circles: {
     id: string;
     name: string;
     category: string;
     university: string | null;
+    genre: string | null;
   };
 };
+
+type SortKey = "date-asc" | "date-desc" | "seats-asc" | "seats-desc";
 
 function matchesDate(dateStr: string, selectedDate: string): boolean {
   if (!selectedDate) return true;
   return format(new Date(dateStr), "yyyy-MM-dd") === selectedDate;
 }
 
-export function EventListings({ events, universities }: { events: EventRow[]; universities: string[] }) {
+const FAVORITES_KEY = "shinkan_favorite_events";
+
+export function EventListings({
+  events,
+  universities,
+  allTags = [],
+}: {
+  events: EventRow[];
+  universities: string[];
+  allTags?: string[];
+}) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
   const [university, setUniversity] = useState("all");
+  const [openOnly, setOpenOnly] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("date-asc");
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(FAVORITES_KEY);
+      if (stored) setFavorites(new Set(JSON.parse(stored)));
+    } catch { /* ignore */ }
+  }, []);
+
+  const toggleFavorite = (id: string) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      try { localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const baseFiltered = useMemo(() => {
     return events.filter((ev) => {
       if (query.trim()) {
         const q = query.trim();
-        if (!ev.title.includes(q) && !ev.circles.name.includes(q) && !(ev.description ?? "").includes(q)) return false;
+        const inTags = (ev.tags ?? "").includes(q) || (ev.circles.genre ?? "").includes(q);
+        if (!ev.title.includes(q) && !ev.circles.name.includes(q) && !(ev.description ?? "").includes(q) && !inTags) return false;
       }
       if (category !== "all" && ev.circles.category !== category) return false;
       if (!matchesDate(ev.date, dateFilter)) return false;
       if (university !== "all" && ev.circles.university !== university) return false;
+      if (openOnly) {
+        const isFull = ev.reserved_count >= ev.capacity;
+        if (ev.status !== "open" || isFull) return false;
+      }
+      if (favoritesOnly && !favorites.has(ev.id)) return false;
       return true;
     });
-  }, [events, query, category, dateFilter, university]);
+  }, [events, query, category, dateFilter, university, openOnly, favoritesOnly, favorites]);
 
-  const activeFilters = [category !== "all", dateFilter !== "", university !== "all"].filter(Boolean).length;
+  const visibleTags = useMemo(() => {
+    const all = [...new Set(
+      baseFiltered.flatMap((ev) => [
+        ...(ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()).filter(Boolean) : []),
+        ...(ev.tags ? ev.tags.split(",").map((t) => t.trim()).filter(Boolean) : []),
+      ])
+    )].sort();
+    if (!query.trim()) return all;
+    return all.filter((tag) => tag.includes(query.trim()));
+  }, [baseFiltered, query]);
+
+  const filtered = useMemo(() => {
+    const base = !selectedTag ? baseFiltered : baseFiltered.filter((ev) => {
+      const circleTags = ev.circles.genre ? ev.circles.genre.split(",").map((t) => t.trim()) : [];
+      const eventTags = ev.tags ? ev.tags.split(",").map((t) => t.trim()) : [];
+      return [...circleTags, ...eventTags].includes(selectedTag);
+    });
+
+    return [...base].sort((a, b) => {
+      switch (sortKey) {
+        case "date-asc":  return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case "date-desc": return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case "seats-desc": return (b.capacity - b.reserved_count) - (a.capacity - a.reserved_count);
+        case "seats-asc":  return (a.capacity - a.reserved_count) - (b.capacity - b.reserved_count);
+      }
+    });
+  }, [baseFiltered, selectedTag, sortKey]);
+
+  const activeFilters = [category !== "all", dateFilter !== "", university !== "all", openOnly, favoritesOnly].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory("all");
     setDateFilter("");
     setUniversity("all");
     setQuery("");
+    setOpenOnly(false);
+    setFavoritesOnly(false);
+    setSelectedTag("");
   };
+
+  useEffect(() => {
+    if (selectedTag && !visibleTags.includes(selectedTag)) {
+      setSelectedTag("");
+    }
+  }, [visibleTags, selectedTag]);
 
   return (
     <div>
@@ -94,6 +172,25 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
           )}
         </Button>
       </div>
+
+      {visibleTags.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none">
+          {visibleTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(selectedTag === tag ? "" : tag)}
+              className={[
+                "shrink-0 text-xs px-3 py-1 rounded-full border transition-colors",
+                selectedTag === tag
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {showFilters && (
         <div className="border rounded-lg p-4 mb-4 bg-muted/30 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -147,6 +244,26 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
               </Select>
             </div>
           )}
+          <div className="sm:col-span-3 flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={openOnly}
+                onChange={(e) => setOpenOnly(e.target.checked)}
+                className="size-4 rounded accent-primary cursor-pointer"
+              />
+              受付中のイベントのみ表示
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={favoritesOnly}
+                onChange={(e) => setFavoritesOnly(e.target.checked)}
+                className="size-4 rounded accent-primary cursor-pointer"
+              />
+              お気に入りのみ表示
+            </label>
+          </div>
         </div>
       )}
 
@@ -154,11 +271,24 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
         <p className="text-sm text-muted-foreground">
           {filtered.length} 件のイベント
         </p>
-        {(activeFilters > 0 || query.trim()) && (
-          <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-            <X className="size-3" /> フィルターをリセット
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {(activeFilters > 0 || query.trim() || selectedTag) && (
+            <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+              <X className="size-3" /> リセット
+            </button>
+          )}
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+            <SelectTrigger className="h-7 text-xs w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date-asc">日付が近い順</SelectItem>
+              <SelectItem value="date-desc">日付が遠い順</SelectItem>
+              <SelectItem value="seats-desc">残席が多い順</SelectItem>
+              <SelectItem value="seats-asc">残席が少ない順</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -174,16 +304,26 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
             const unavailable = isFull || isClosed;
             const catColor = CATEGORY_COLORS[ev.circles.category] ?? CATEGORY_COLORS.other;
             const remaining = ev.capacity - ev.reserved_count;
+            const isFav = favorites.has(ev.id);
 
             return (
               <div key={ev.id} className="border rounded-xl p-4 flex flex-col gap-3 hover:shadow-md transition-shadow bg-background">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>
-                    {CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category}
-                  </span>
-                  {ev.circles.university && (
-                    <span className="text-xs text-muted-foreground">{ev.circles.university}</span>
-                  )}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>
+                      {CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category}
+                    </span>
+                    {ev.circles.university && (
+                      <span className="text-xs text-muted-foreground">{ev.circles.university}</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => toggleFavorite(ev.id)}
+                    className="shrink-0 text-muted-foreground hover:text-rose-500 transition-colors"
+                    aria-label={isFav ? "お気に入り解除" : "お気に入り追加"}
+                  >
+                    <Heart className={`size-4 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
+                  </button>
                 </div>
 
                 <div>
@@ -203,6 +343,16 @@ export function EventListings({ events, universities }: { events: EventRow[]; un
                     </span>
                   )}
                 </div>
+
+                {ev.tags && (
+                  <div className="flex flex-wrap gap-1">
+                    {ev.tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
+                      <span key={tag} className="text-[11px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 <div className="mt-auto flex items-center justify-between">
                   {unavailable ? (
