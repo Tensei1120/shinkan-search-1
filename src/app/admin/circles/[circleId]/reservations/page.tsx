@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { CheckCircle } from "lucide-react";
 import ReservationActions from "./reservation-actions";
 
 export const revalidate = 0;
@@ -131,12 +132,13 @@ export default async function ReservationsPage({
               <TableHead>日時</TableHead>
               <TableHead>備考</TableHead>
               <TableHead>状態</TableHead>
+              <TableHead>出席</TableHead>
               <TableHead>キャンセル回数</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {reservations.map((r: { id: string; name: string; email: string; grade: string; department: string; note: string | null; status: keyof typeof STATUS_LABEL; event_id: string; events: { title: string; date: string } }) => {
+            {reservations.map((r: { id: string; name: string; email: string; grade: string; department: string; note: string | null; status: keyof typeof STATUS_LABEL; event_id: string; attended_at: string | null; events: { title: string; date: string } }) => {
               const ev = r.events as { title: string; date: string };
               const s = STATUS_LABEL[r.status];
               return (
@@ -153,6 +155,16 @@ export default async function ReservationsPage({
                   <TableCell className="text-sm max-w-xs truncate">{r.note ?? "—"}</TableCell>
                   <TableCell>
                     <Badge variant={s.variant}>{s.label}</Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {r.attended_at ? (
+                      <span className="flex items-center gap-1 text-green-600 font-medium">
+                        <CheckCircle className="size-3.5" />
+                        {format(new Date(r.attended_at), "HH:mm")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm">
                     {(cancelCountByEmail[r.email] ?? 0) > 0 ? (

@@ -154,6 +154,7 @@ export interface Database {
           department: string;
           note: string | null;
           status: "pending" | "approved" | "rejected" | "cancelled";
+          attended_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -166,6 +167,7 @@ export interface Database {
           department: string;
           note?: string | null;
           status?: "pending" | "approved" | "rejected" | "cancelled";
+          attended_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -178,6 +180,7 @@ export interface Database {
           department?: string;
           note?: string | null;
           status?: "pending" | "approved" | "rejected" | "cancelled";
+          attended_at?: string | null;
           updated_at?: string;
         };
         Relationships: [
