@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { SiteHeader } from "@/components/site-header";
 import { MyPageView } from "@/components/my-page-view";
 
@@ -38,8 +38,9 @@ export default async function MyPage() {
 
   const reservationIds = reservations.map((r) => r.id);
   if (reservationIds.length > 0) {
+    const service = createServiceClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: msgs } = await (supabase as any)
+    const { data: msgs } = await (service as any)
       .from("messages")
       .select("reservation_id, body, sender_type, created_at, read_at")
       .in("reservation_id", reservationIds)

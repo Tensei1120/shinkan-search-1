@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Search, User, Building2 } from "lucide-react";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 export async function SiteHeader() {
   const cookieStore = await cookies();
@@ -11,15 +11,16 @@ export async function SiteHeader() {
   let unreadCount = 0;
   if (profile?.email) {
     try {
-      const supabase = await createClient();
-      const { data: reservations } = await supabase
+      const service = createServiceClient();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: reservations } = await (service as any)
         .from("reservations")
         .select("id")
         .eq("email", profile.email);
-      const ids = (reservations ?? []).map((r) => r.id);
+      const ids = (reservations ?? []).map((r: { id: string }) => r.id);
       if (ids.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: unread } = await (supabase as any)
+        const { data: unread } = await (service as any)
           .from("messages")
           .select("id")
           .in("reservation_id", ids)

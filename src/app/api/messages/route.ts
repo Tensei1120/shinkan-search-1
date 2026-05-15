@@ -20,7 +20,9 @@ export async function GET(req: NextRequest) {
     // Student access: verify email matches reservation
     if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: reservation } = await supabase
+    const service = createServiceClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: reservation } = await (service as any)
       .from("reservations")
       .select("id, email")
       .eq("id", reservationId)
@@ -93,7 +95,9 @@ export async function POST(req: NextRequest) {
   } else {
     // Student: verify email matches reservation
     if (!email) return NextResponse.json({ error: "email required for student" }, { status: 400 });
-    const { data: reservation } = await supabase
+    const svc = createServiceClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: reservation } = await (svc as any)
       .from("reservations")
       .select("id, email")
       .eq("id", reservationId)
