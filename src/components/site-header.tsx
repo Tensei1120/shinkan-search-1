@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Search, User, Building2 } from "lucide-react";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/server";
+import { HeaderUnreadBadge } from "@/components/header-unread-badge";
 
 export async function SiteHeader() {
   const cookieStore = await cookies();
   const raw = cookieStore.get("student_profile")?.value;
   const profile = raw ? (JSON.parse(raw) as { name: string; email?: string }) : null;
 
-  let unreadCount = 0;
+  let unreadReservationIds: string[] = [];
   if (profile?.email) {
     try {
       const service = createServiceClient();
@@ -22,11 +23,11 @@ export async function SiteHeader() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: unread } = await (service as any)
           .from("messages")
-          .select("id")
+          .select("reservation_id")
           .in("reservation_id", ids)
           .eq("sender_type", "admin")
           .is("read_at", null);
-        unreadCount = unread?.length ?? 0;
+        unreadReservationIds = [...new Set((unread ?? []).map((m: { reservation_id: string }) => m.reservation_id))];
       }
     } catch { /* messages table may not exist yet */ }
   }
@@ -60,14 +61,7 @@ export async function SiteHeader() {
             <span className="hidden sm:inline">
               {profile ? profile.name : "マイページ"}
             </span>
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center">
-                <span className="animate-ping absolute inline-flex size-full rounded-full bg-rose-400 opacity-75" />
-                <span className="relative flex size-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              </span>
-            )}
+            <HeaderUnreadBadge unreadIds={unreadReservationIds} />
           </Link>
           <Link
             href="/admin"
