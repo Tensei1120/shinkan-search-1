@@ -78,6 +78,7 @@ function MessageDialog({
   studentEmail: string;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [body, setBody] = useState("");
@@ -91,9 +92,10 @@ function MessageDialog({
     if (res.ok) {
       const json = await res.json();
       setMessages(json.messages ?? []);
+      router.refresh();
     }
     setLoading(false);
-  }, [reservation.id, studentEmail]);
+  }, [reservation.id, studentEmail, router]);
 
   useEffect(() => { loadMessages(); }, [loadMessages]);
 
