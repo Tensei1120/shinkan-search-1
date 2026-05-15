@@ -9,7 +9,7 @@ export async function SiteHeader() {
   const raw = cookieStore.get("student_profile")?.value;
   const profile = raw ? (JSON.parse(raw) as { name: string; email?: string }) : null;
 
-  let unreadReservationIds: string[] = [];
+  let unreadItems: { id: string; latestAt: string }[] = [];
   if (profile?.email) {
     try {
       const service = createServiceClient();
@@ -23,11 +23,16 @@ export async function SiteHeader() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: unread } = await (service as any)
           .from("messages")
-          .select("reservation_id")
+          .select("reservation_id, created_at")
           .in("reservation_id", ids)
           .eq("sender_type", "admin")
-          .is("read_at", null);
-        unreadReservationIds = [...new Set((unread as { reservation_id: string }[] ?? []).map((m) => m.reservation_id))];
+          .is("read_at", null)
+          .order("created_at", { ascending: false });
+        const latestByRes = new Map<string, string>();
+        for (const m of (unread as { reservation_id: string; created_at: string }[] ?? [])) {
+          if (!latestByRes.has(m.reservation_id)) latestByRes.set(m.reservation_id, m.created_at);
+        }
+        unreadItems = [...latestByRes.entries()].map(([id, latestAt]) => ({ id, latestAt }));
       }
     } catch { /* messages table may not exist yet */ }
   }
@@ -61,7 +66,7 @@ export async function SiteHeader() {
             <span className="hidden sm:inline">
               {profile ? profile.name : "マイページ"}
             </span>
-            <HeaderUnreadBadge unreadIds={unreadReservationIds} />
+            <HeaderUnreadBadge unreadItems={unreadItems} />
           </Link>
           <Link
             href="/admin"

@@ -2,16 +2,21 @@
 
 import { useEffect, useState } from "react";
 
-export function HeaderUnreadBadge({ unreadIds }: { unreadIds: string[] }) {
-  const [count, setCount] = useState(unreadIds.length);
+const LAST_READ_KEY = "my_last_read";
+
+export function HeaderUnreadBadge({ unreadItems }: { unreadItems: { id: string; latestAt: string }[] }) {
+  const [count, setCount] = useState(unreadItems.length);
 
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem("my_read_ids");
-      const readIds: Set<string> = stored ? new Set(JSON.parse(stored)) : new Set();
-      setCount(unreadIds.filter((id) => !readIds.has(id)).length);
+      const stored = localStorage.getItem(LAST_READ_KEY);
+      const lastReadMap: Record<string, string> = stored ? JSON.parse(stored) : {};
+      const remaining = unreadItems.filter(
+        ({ id, latestAt }) => !lastReadMap[id] || latestAt > lastReadMap[id]
+      ).length;
+      setCount(remaining);
     } catch {}
-  }, [unreadIds]);
+  }, [unreadItems]);
 
   if (count === 0) return null;
 

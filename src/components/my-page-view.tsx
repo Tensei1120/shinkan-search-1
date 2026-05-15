@@ -184,7 +184,9 @@ function MessageDialog({
   );
 }
 
-type MsgInfo = { body: string; sender_type: string; created_at: string; unreadCount: number };
+const LAST_READ_KEY = "my_last_read";
+
+type MsgInfo = { body: string; sender_type: string; created_at: string; unreadCount: number; latestUnreadAt: string | null };
 
 export function MyPageView({
   profile,
@@ -201,20 +203,21 @@ export function MyPageView({
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [msgReservation, setMsgReservation] = useState<Reservation | null>(null);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [lastReadMap, setLastReadMap] = useState<Record<string, string>>({});
   const router = useRouter();
 
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem("my_read_ids");
-      if (stored) setReadIds(new Set(JSON.parse(stored)));
+      const stored = localStorage.getItem(LAST_READ_KEY);
+      if (stored) setLastReadMap(JSON.parse(stored));
     } catch {}
   }, []);
 
   const markRead = (id: string) => {
-    setReadIds((prev) => {
-      const next = new Set([...prev, id]);
-      try { sessionStorage.setItem("my_read_ids", JSON.stringify([...next])); } catch {}
+    const now = new Date().toISOString();
+    setLastReadMap((prev) => {
+      const next = { ...prev, [id]: now };
+      try { localStorage.setItem(LAST_READ_KEY, JSON.stringify(next)); } catch {}
       return next;
     });
   };
@@ -416,7 +419,8 @@ export function MyPageView({
               const canCancel = r.status === "pending" || r.status === "approved";
 
               const msgInfo = messagesByReservation[r.id];
-              const hasUnread = msgInfo && msgInfo.unreadCount > 0 && !readIds.has(r.id);
+              const hasUnread = msgInfo && msgInfo.unreadCount > 0 &&
+                (!lastReadMap[r.id] || (msgInfo.latestUnreadAt != null && msgInfo.latestUnreadAt > lastReadMap[r.id]));
 
               return (
                 <div key={r.id} className={`border rounded-xl p-4 flex flex-col sm:flex-row sm:items-start gap-3 transition-colors ${hasUnread ? "border-rose-400 bg-rose-50 dark:bg-rose-950/20" : ""}`}>

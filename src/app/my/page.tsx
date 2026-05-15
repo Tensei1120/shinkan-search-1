@@ -33,7 +33,7 @@ export default async function MyPage() {
   const reservations = (data ?? []) as Reservation[];
 
   // Fetch latest message + unread count per reservation
-  type MsgInfo = { body: string; sender_type: string; created_at: string; unreadCount: number };
+  type MsgInfo = { body: string; sender_type: string; created_at: string; unreadCount: number; latestUnreadAt: string | null };
   let messagesByReservation: Record<string, MsgInfo> = {};
 
   const reservationIds = reservations.map((r) => r.id);
@@ -53,10 +53,15 @@ export default async function MyPage() {
           sender_type: m.sender_type,
           created_at: m.created_at,
           unreadCount: 0,
+          latestUnreadAt: null,
         };
       }
       if (m.sender_type === "admin" && !m.read_at) {
         messagesByReservation[m.reservation_id].unreadCount++;
+        // msgs are ordered DESC so first unread admin msg = latest
+        if (!messagesByReservation[m.reservation_id].latestUnreadAt) {
+          messagesByReservation[m.reservation_id].latestUnreadAt = m.created_at;
+        }
       }
     }
   }
