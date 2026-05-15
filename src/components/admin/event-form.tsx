@@ -25,6 +25,7 @@ const schema = z.object({
   capacity: z.number().int().min(1, "定員は1以上にしてください"),
   status: z.enum(["open", "closed", "cancelled"]),
   tags: z.string().optional(),
+  cancelDeadline: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -115,6 +116,12 @@ export default function EventForm({ circleId, defaultValues, eventId }: Props) {
             <SelectItem value="cancelled">中止</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="cancelDeadline">キャンセル期限</Label>
+        <Input id="cancelDeadline" type="datetime-local" {...register("cancelDeadline")} />
+        <p className="text-xs text-muted-foreground">設定すると、この日時以降は学生がキャンセルできなくなります</p>
       </div>
 
       <div className="space-y-1">

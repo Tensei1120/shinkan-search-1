@@ -21,10 +21,14 @@ export default async function EditEventPage({
 
   if (!event) notFound();
 
+  const toLocalDatetime = (utc: string | null) =>
+    utc
+      ? new Date(new Date(utc).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16)
+      : "";
+
   // Convert UTC to JST for datetime-local input (JST = UTC+9)
-  const localDate = new Date(new Date(event.date).getTime() + 9 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 16);
+  const localDate = toLocalDatetime(event.date);
+  const ev = event as unknown as { tags: string | null; cancel_deadline: string | null };
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
@@ -45,7 +49,8 @@ export default async function EditEventPage({
           location: event.location ?? "",
           capacity: event.capacity,
           status: event.status,
-          tags: (event as unknown as { tags: string | null }).tags ?? "",
+          tags: ev.tags ?? "",
+          cancelDeadline: toLocalDatetime(ev.cancel_deadline),
         }}
       />
       <hr className="my-8" />

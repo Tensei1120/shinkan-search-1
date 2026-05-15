@@ -26,7 +26,7 @@ export default async function MyPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("reservations")
-    .select("id, status, created_at, events(id, title, date, location, circles(id, name, category, contact_email))")
+    .select("id, status, created_at, events(id, title, date, location, cancel_deadline, circles(id, name, category, contact_email))")
     .eq("email", profile.email)
     .order("created_at", { ascending: false });
 

@@ -11,6 +11,7 @@ const schema = z.object({
   capacity: z.coerce.number().int().min(1),
   status: z.enum(["open", "closed", "cancelled"]).default("open"),
   tags: z.string().optional(),
+  cancelDeadline: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "入力内容が正しくありません" }, { status: 400 });
   }
 
-  const { circleId, ...rest } = parsed.data;
+  const { circleId, cancelDeadline, ...rest } = parsed.data;
 
   // Verify admin owns this circle
   const { data: admin } = await supabase
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
     circle_id: circleId,
     ...rest,
     date: new Date(rest.date + "+09:00").toISOString(),
+    cancel_deadline: cancelDeadline ? new Date(cancelDeadline + "+09:00").toISOString() : null,
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

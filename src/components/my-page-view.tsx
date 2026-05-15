@@ -41,6 +41,7 @@ type Reservation = {
     title: string;
     date: string;
     location: string | null;
+    cancel_deadline: string | null;
     circles: { id: string; name: string; category: string; contact_email: string };
   };
 };
@@ -416,7 +417,10 @@ export function MyPageView({
               const ev = r.events;
               const catColor = CATEGORY_COLORS[ev.circles.category] ?? CATEGORY_COLORS.other;
               const catLabel = CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category;
-              const canCancel = r.status === "pending" || r.status === "approved";
+              const deadlinePassed =
+                ev.cancel_deadline != null && new Date() > new Date(ev.cancel_deadline);
+              const canCancel =
+                (r.status === "pending" || r.status === "approved") && !deadlinePassed;
 
               const msgInfo = messagesByReservation[r.id];
               const hasUnread = msgInfo && msgInfo.unreadCount > 0 &&
@@ -448,6 +452,13 @@ export function MyPageView({
                       {ev.location && (
                         <span className="flex items-center gap-1.5">
                           <MapPin className="size-3.5" />{ev.location}
+                        </span>
+                      )}
+                      {ev.cancel_deadline && (r.status === "pending" || r.status === "approved") && (
+                        <span className={`flex items-center gap-1.5 text-xs ${deadlinePassed ? "text-destructive font-medium" : ""}`}>
+                          <Ban className="size-3.5" />
+                          キャンセル期限：{format(new Date(ev.cancel_deadline), "M月d日(E) HH:mm", { locale: ja })}
+                          {deadlinePassed && "（期限切れ）"}
                         </span>
                       )}
                     </div>

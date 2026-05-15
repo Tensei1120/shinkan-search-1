@@ -10,6 +10,7 @@ const patchSchema = z.object({
   capacity: z.coerce.number().int().min(1).optional(),
   status: z.enum(["open", "closed", "cancelled"]).optional(),
   tags: z.string().optional(),
+  cancelDeadline: z.string().optional().nullable(),
 });
 
 async function verifyAdmin(
@@ -52,8 +53,12 @@ export async function PATCH(
     return NextResponse.json({ error: "入力内容が正しくありません" }, { status: 400 });
   }
 
-  const updates = parsed.data;
-  if (updates.date) updates.date = new Date(updates.date + "+09:00").toISOString();
+  const { cancelDeadline, ...rest } = parsed.data;
+  const updates: Record<string, unknown> = { ...rest };
+  if (updates.date) updates.date = new Date((updates.date as string) + "+09:00").toISOString();
+  if (cancelDeadline !== undefined) {
+    updates.cancel_deadline = cancelDeadline ? new Date(cancelDeadline + "+09:00").toISOString() : null;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)

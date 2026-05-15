@@ -83,6 +83,7 @@ export interface Database {
           capacity: number;
           reserved_count: number;
           status: "open" | "closed" | "cancelled";
+          cancel_deadline: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -96,6 +97,7 @@ export interface Database {
           capacity?: number;
           reserved_count?: number;
           status?: "open" | "closed" | "cancelled";
+          cancel_deadline?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -109,6 +111,7 @@ export interface Database {
           capacity?: number;
           reserved_count?: number;
           status?: "open" | "closed" | "cancelled";
+          cancel_deadline?: string | null;
           updated_at?: string;
         };
         Relationships: [
