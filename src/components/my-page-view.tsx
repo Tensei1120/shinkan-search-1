@@ -280,7 +280,7 @@ export function MyPageView({
             {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
             {penaltyCount > 0 && (
               <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                ⚠️ キャンセルポイント：{penaltyCount}pt
+                ⚠️ キャンセル回数：{penaltyCount}回
               </p>
             )}
           </div>

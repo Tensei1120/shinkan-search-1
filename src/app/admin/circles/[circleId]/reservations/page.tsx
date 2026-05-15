@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import {
   Table,
   TableBody,
@@ -65,6 +65,21 @@ export default async function ReservationsPage({
     ? (reservations[0].events as { title: string } | null)?.title ?? null
     : null;
 
+  // Fetch cancel penalty counts per email
+  const cancelCountByEmail: Record<string, number> = {};
+  const emails = [...new Set((reservations ?? []).map((r: { email: string }) => r.email))];
+  if (emails.length > 0) {
+    const service = createServiceClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: penalties } = await (service as any)
+      .from("cancel_penalties")
+      .select("email")
+      .in("email", emails);
+    for (const p of (penalties ?? [])) {
+      cancelCountByEmail[p.email] = (cancelCountByEmail[p.email] ?? 0) + 1;
+    }
+  }
+
   // Fetch unread message counts per reservation (student messages admin hasn't read)
   const unreadByReservation: Record<string, number> = {};
   const resIds = (reservations ?? []).map((r: { id: string }) => r.id);
@@ -116,6 +131,7 @@ export default async function ReservationsPage({
               <TableHead>日時</TableHead>
               <TableHead>備考</TableHead>
               <TableHead>状態</TableHead>
+              <TableHead>キャンセル回数</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -137,6 +153,15 @@ export default async function ReservationsPage({
                   <TableCell className="text-sm max-w-xs truncate">{r.note ?? "—"}</TableCell>
                   <TableCell>
                     <Badge variant={s.variant}>{s.label}</Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {(cancelCountByEmail[r.email] ?? 0) > 0 ? (
+                      <span className="text-amber-600 font-medium">
+                        {cancelCountByEmail[r.email]}回
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">0回</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <ReservationActions
