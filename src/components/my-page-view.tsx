@@ -204,6 +204,21 @@ export function MyPageView({
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const router = useRouter();
 
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("my_read_ids");
+      if (stored) setReadIds(new Set(JSON.parse(stored)));
+    } catch {}
+  }, []);
+
+  const markRead = (id: string) => {
+    setReadIds((prev) => {
+      const next = new Set([...prev, id]);
+      try { sessionStorage.setItem("my_read_ids", JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
+
   const active = reservations.filter(
     (r) => r.status !== "cancelled" && r.status !== "rejected"
   );
@@ -497,7 +512,7 @@ export function MyPageView({
           reservation={msgReservation}
           studentEmail={profile.email}
           onClose={() => {
-            setReadIds((prev) => new Set([...prev, msgReservation.id]));
+            markRead(msgReservation.id);
             setMsgReservation(null);
             router.refresh();
           }}
