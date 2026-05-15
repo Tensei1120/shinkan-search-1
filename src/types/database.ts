@@ -124,6 +124,26 @@ export interface Database {
           }
         ];
       };
+      cancel_penalties: {
+        Row: {
+          id: string;
+          email: string;
+          reservation_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          reservation_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          reservation_id?: string | null;
+        };
+        Relationships: [];
+      };
       reservations: {
         Row: {
           id: string;

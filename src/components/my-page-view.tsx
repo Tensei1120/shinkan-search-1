@@ -193,10 +193,12 @@ export function MyPageView({
   profile,
   reservations: initial,
   messagesByReservation = {},
+  penaltyCount = 0,
 }: {
   profile: StudentProfile;
   reservations: Reservation[];
   messagesByReservation?: Record<string, MsgInfo>;
+  penaltyCount?: number;
 }) {
   const [reservations, setReservations] = useState(initial);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -276,6 +278,11 @@ export function MyPageView({
             )}
             <p className="text-xs text-muted-foreground">{profile.email}</p>
             {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
+            {penaltyCount > 0 && (
+              <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                ⚠️ キャンセルポイント：{penaltyCount}pt
+              </p>
+            )}
           </div>
         </div>
         <Link
@@ -419,8 +426,7 @@ export function MyPageView({
               const catLabel = CATEGORIES[ev.circles.category as keyof typeof CATEGORIES] ?? ev.circles.category;
               const deadlinePassed =
                 ev.cancel_deadline != null && new Date() > new Date(ev.cancel_deadline);
-              const canCancel =
-                (r.status === "pending" || r.status === "approved") && !deadlinePassed;
+              const canCancel = r.status === "pending" || r.status === "approved";
 
               const msgInfo = messagesByReservation[r.id];
               const hasUnread = msgInfo && msgInfo.unreadCount > 0 &&
@@ -455,10 +461,10 @@ export function MyPageView({
                         </span>
                       )}
                       {ev.cancel_deadline && (r.status === "pending" || r.status === "approved") && (
-                        <span className={`flex items-center gap-1.5 text-xs ${deadlinePassed ? "text-destructive font-medium" : ""}`}>
+                        <span className={`flex items-center gap-1.5 text-xs ${deadlinePassed ? "text-amber-600 dark:text-amber-400 font-medium" : ""}`}>
                           <Ban className="size-3.5" />
                           キャンセル期限：{format(new Date(ev.cancel_deadline), "M月d日(E) HH:mm", { locale: ja })}
-                          {deadlinePassed && "（期限切れ）"}
+                          {deadlinePassed && "（期限後はポイントが付きます）"}
                         </span>
                       )}
                     </div>

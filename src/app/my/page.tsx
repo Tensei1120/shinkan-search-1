@@ -66,6 +66,18 @@ export default async function MyPage() {
     }
   }
 
+  // Fetch cancel penalty count
+  let penaltyCount = 0;
+  try {
+    const service2 = createServiceClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count } = await (service2 as any)
+      .from("cancel_penalties")
+      .select("id", { count: "exact", head: true })
+      .eq("email", profile.email);
+    penaltyCount = count ?? 0;
+  } catch { /* table may not exist yet */ }
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -75,6 +87,7 @@ export default async function MyPage() {
           profile={profile}
           reservations={reservations}
           messagesByReservation={messagesByReservation}
+          penaltyCount={penaltyCount}
         />
       </main>
     </div>
