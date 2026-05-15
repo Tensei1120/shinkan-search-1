@@ -27,7 +27,7 @@ export async function SiteHeader() {
           .in("reservation_id", ids)
           .eq("sender_type", "admin")
           .is("read_at", null);
-        unreadReservationIds = [...new Set((unread ?? []).map((m: { reservation_id: string }) => m.reservation_id))];
+        unreadReservationIds = [...new Set((unread as { reservation_id: string }[] ?? []).map((m) => m.reservation_id))];
       }
     } catch { /* messages table may not exist yet */ }
   }
